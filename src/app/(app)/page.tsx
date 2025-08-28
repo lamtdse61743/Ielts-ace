@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useForm, type SubmitHandler } from 'react-hook-form';
+import { useForm, type SubmitHandler, type FieldValues } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { v4 as uuidv4 } from 'uuid';
@@ -16,11 +16,12 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { AppHeader } from '@/components/app-header';
 import { ExamTimer } from '@/components/exam-timer';
-import type { GeneratedQuestion } from '@/lib/types';
+import type { GeneratedQuestion, ReadingQuestion } from '@/lib/types';
 import { useSavedContent } from '@/hooks/use-saved-content';
 import { Bookmark, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 const FormSchema = z.object({
   questionType: z.string().min(1, 'Please select a question type.'),
@@ -40,21 +41,26 @@ export default function PracticeQuestionsPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [generatedContent, setGeneratedContent] = useState<GeneratedQuestion | null>(null);
   const [timerDuration, setTimerDuration] = useState(2400);
+  const [score, setScore] = useState<number | null>(null);
   const { toast } = useToast();
   const { addSavedItem, removeSavedItem, isSaved } = useSavedContent();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
-      questionType: 'essay',
+      questionType: 'reading-comprehension',
       difficulty: 'medium',
       topic: '',
     },
   });
 
-  const onSubmit: SubmitHandler<FormValues> = async (data) => {
+  const readingForm = useForm();
+
+  const onGenerateSubmit: SubmitHandler<FormValues> = async (data) => {
     setIsLoading(true);
     setGeneratedContent(null);
+    setScore(null);
+    readingForm.reset();
     try {
       const result = await generatePracticeQuestion(data);
       const content: GeneratedQuestion = {
@@ -81,6 +87,22 @@ export default function PracticeQuestionsPage() {
     }
   };
 
+  const onAnswersSubmit: SubmitHandler<FieldValues> = (data) => {
+    if (!generatedContent || !generatedContent.questions) return;
+    
+    let correctAnswers = 0;
+    generatedContent.questions.forEach((q, index) => {
+      if (data[`q_${index}`]?.toLowerCase() === q.answer.toLowerCase()) {
+        correctAnswers++;
+      }
+    });
+    setScore(correctAnswers);
+     toast({
+      title: "Submitted!",
+      description: `You scored ${correctAnswers} out of ${generatedContent.questions.length}`,
+    });
+  };
+
   const handleSaveToggle = () => {
     if (!generatedContent) return;
     if (isSaved(generatedContent.id)) {
@@ -90,6 +112,54 @@ export default function PracticeQuestionsPage() {
       addSavedItem(generatedContent);
       toast({ title: 'Saved!', description: 'You can find it in the "Saved Content" section.' });
     }
+  };
+
+  const renderQuestion = (question: ReadingQuestion, index: number) => {
+    const fieldName = `q_${index}`;
+    return (
+      <div key={index} className="mb-6 rounded-md border p-4">
+        <p className="mb-2 font-semibold">{index + 1}. {question.questionText}</p>
+        <FormField
+          control={readingForm.control}
+          name={fieldName}
+          render={({ field }) => (
+            <FormItem>
+              <FormControl>
+                {question.questionType === 'multiple-choice' && (
+                  <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="space-y-2">
+                    {question.options?.map((option, i) => (
+                      <FormItem key={i} className="flex items-center space-x-3">
+                         <FormControl>
+                            <RadioGroupItem value={option} />
+                          </FormControl>
+                        <FormLabel className="font-normal">{option}</FormLabel>
+                      </FormItem>
+                    ))}
+                  </RadioGroup>
+                )}
+                {question.questionType === 'true-false' && (
+                   <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex space-x-4">
+                      <FormItem className="flex items-center space-x-3">
+                        <FormControl>
+                          <RadioGroupItem value="True" />
+                        </FormControl>
+                        <FormLabel className="font-normal">True</FormLabel>
+                      </FormItem>
+                      <FormItem className="flex items-center space-x-3">
+                         <FormControl>
+                            <RadioGroupItem value="False" />
+                          </FormControl>
+                        <FormLabel className="font-normal">False</FormLabel>
+                      </FormItem>
+                  </RadioGroup>
+                )}
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      </div>
+    );
   };
   
   return (
@@ -104,7 +174,7 @@ export default function PracticeQuestionsPage() {
                 <CardDescription>Select your preferences to generate a custom IELTS practice question.</CardDescription>
               </CardHeader>
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)}>
+                <form onSubmit={form.handleSubmit(onGenerateSubmit)}>
                   <CardContent className="space-y-4">
                     <FormField
                       control={form.control}
@@ -145,7 +215,6 @@ export default function PracticeQuestionsPage() {
                             <SelectContent>
                               <SelectItem value="easy">Easy</SelectItem>
                               <SelectItem value="medium">Medium</SelectItem>
-      
                               <SelectItem value="hard">Hard</SelectItem>
                             </SelectContent>
                           </Select>
@@ -199,7 +268,8 @@ export default function PracticeQuestionsPage() {
                   <div>
                     <CardTitle className="font-headline text-xl">Generated Question</CardTitle>
                     <CardDescription>
-                      {generatedContent.difficulty && <span className="capitalize">{generatedContent.difficulty}</span>}
+                      {questionTypes.find(qt => qt.value === generatedContent.questionType)?.label}
+                      {generatedContent.difficulty && <span className="capitalize"> - {generatedContent.difficulty}</span>}
                       {generatedContent.topic && ` - ${generatedContent.topic}`}
                     </CardDescription>
                   </div>
@@ -211,22 +281,41 @@ export default function PracticeQuestionsPage() {
                 <CardContent className="flex-1 space-y-4">
                   {generatedContent.passage && (
                     <ScrollArea className="h-48 rounded-md border bg-muted p-4">
+                       <h3 className="mb-2 text-lg font-semibold">Reading Passage</h3>
                       <p className="whitespace-pre-wrap text-sm leading-relaxed">
                         {generatedContent.passage}
                       </p>
                     </ScrollArea>
                   )}
-                  <p className="whitespace-pre-wrap rounded-md border bg-muted p-4 text-sm leading-relaxed">
-                    {generatedContent.question}
-                  </p>
-                  <Accordion type="single" collapsible>
-                    <AccordionItem value="item-1">
-                      <AccordionTrigger>View Example Answer</AccordionTrigger>
-                      <AccordionContent className="whitespace-pre-wrap text-sm leading-relaxed">
-                        {generatedContent.answer}
-                      </AccordionContent>
-                    </AccordionItem>
-                  </Accordion>
+                  {generatedContent.questions && (
+                    <Form {...readingForm}>
+                      <form onSubmit={readingForm.handleSubmit(onAnswersSubmit)}>
+                        <h3 className="mb-4 text-lg font-semibold">Questions</h3>
+                        {generatedContent.questions.map(renderQuestion)}
+                         <div className="mt-6 flex items-center justify-between">
+                          <Button type="submit">Submit Answers</Button>
+                          {score !== null && (
+                            <p className="text-lg font-bold">Your Score: {score}/{generatedContent.questions.length}</p>
+                          )}
+                        </div>
+                      </form>
+                    </Form>
+                  )}
+                  {generatedContent.question && !generatedContent.questions && (
+                    <>
+                      <p className="whitespace-pre-wrap rounded-md border bg-muted p-4 text-sm leading-relaxed">
+                        {generatedContent.question}
+                      </p>
+                      <Accordion type="single" collapsible>
+                        <AccordionItem value="item-1">
+                          <AccordionTrigger>View Example Answer</AccordionTrigger>
+                          <AccordionContent className="whitespace-pre-wrap text-sm leading-relaxed">
+                            {generatedContent.answer}
+                          </AccordionContent>
+                        </AccordionItem>
+                      </Accordion>
+                    </>
+                  )}
                 </CardContent>
                 <CardFooter>
                   <ExamTimer initialTime={timerDuration} />

@@ -1,6 +1,13 @@
 import type { EssayFeedbackOutput } from '@/ai/flows/essay-feedback';
 import type { GeneratePracticeQuestionOutput } from '@/ai/flows/generate-practice-question';
 
+export type ReadingQuestion = {
+  questionText: string;
+  questionType: 'multiple-choice' | 'true-false';
+  options?: string[];
+  answer: string;
+};
+
 export type GeneratedQuestion = GeneratePracticeQuestionOutput & {
   id: string;
   type: 'question';
@@ -9,6 +16,7 @@ export type GeneratedQuestion = GeneratePracticeQuestionOutput & {
   difficulty?: string;
   createdAt: string;
   passage?: string;
+  questions?: ReadingQuestion[];
 };
 
 export type AnalyzedEssay = {
