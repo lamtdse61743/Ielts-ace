@@ -83,8 +83,8 @@ type EssayFormValues = z.infer<typeof EssayFormSchema>;
 
 function WritingPractice() {
   const searchParams = useSearchParams();
-  const initialTrainingType =
-    (searchParams.get('type') as 'Academic' | 'General Training' | null)
+  const trainingTypeFromUrl =
+    (searchParams.get('type') as 'Academic' | 'General Training' | null);
 
   const [isLoading, setIsLoading] = useState(false);
   const [isFeedbackLoading, setIsFeedbackLoading] = useState(false);
@@ -102,16 +102,16 @@ function WritingPractice() {
     resolver: zodResolver(TopicFormSchema),
     defaultValues: {
       task: 'Task 2',
-      trainingType: 'Academic',
+      trainingType: trainingTypeFromUrl || 'Academic',
       topic: '',
     },
   });
 
   useEffect(() => {
-    if (initialTrainingType) {
-      topicForm.setValue('trainingType', initialTrainingType);
+    if (trainingTypeFromUrl) {
+      topicForm.setValue('trainingType', trainingTypeFromUrl);
     }
-  }, [initialTrainingType, topicForm]);
+  }, [trainingTypeFromUrl, topicForm]);
 
   const essayForm = useForm<EssayFormValues>({
     resolver: zodResolver(EssayFormSchema),
@@ -153,7 +153,7 @@ function WritingPractice() {
   };
 
   const onEssaySubmit: SubmitHandler<EssayFormValues> = async (data) => {
-    if (!generatedTopic || !initialTrainingType) return;
+    if (!generatedTopic || !trainingTypeFromUrl) return;
     setIsFeedbackLoading(true);
     setAnalyzedEssay(null);
 
@@ -169,7 +169,7 @@ function WritingPractice() {
         type: 'essay',
         essay: data.essay,
         topic: generatedTopic.topic,
-        trainingType: initialTrainingType,
+        trainingType: trainingTypeFromUrl,
         task: topicForm.getValues('task'),
         createdAt: new Date().toISOString(),
         feedback,
@@ -194,7 +194,7 @@ function WritingPractice() {
     topicForm.reset({
       task: 'Task 2',
       topic: '',
-      trainingType: initialTrainingType || 'Academic',
+      trainingType: trainingTypeFromUrl || 'Academic',
     });
   };
 
@@ -239,7 +239,7 @@ function WritingPractice() {
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <AppHeader title={`Writing Practice (${initialTrainingType || '...'})`}>
+      <AppHeader title={`Writing Practice (${trainingTypeFromUrl || '...'})`}>
         {(generatedTopic || analyzedEssay) && (
           <Button variant="outline" onClick={handleStartOver}>
             <RefreshCcw className="mr-2 size-4" />
