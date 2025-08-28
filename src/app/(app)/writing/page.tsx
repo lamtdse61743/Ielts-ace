@@ -47,18 +47,17 @@ import type { AnalyzedEssay, SavedContent } from '@/lib/types';
 import { useSavedContent } from '@/hooks/use-saved-content';
 import {
   Bookmark,
-  BrainCircuit,
+  CheckCircle,
+  FileText,
+  GraduationCap,
   Loader2,
+  MessageSquareQuote,
+  RefreshCcw,
   SpellCheck,
   Waypoints,
-  RefreshCcw,
-  FileText,
-  MessageSquareQuote,
-  CheckCircle,
-  GraduationCap,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   BarChart,
   Bar,
@@ -83,9 +82,10 @@ type EssayFormValues = z.infer<typeof EssayFormSchema>;
 
 function WritingPractice() {
   const searchParams = useSearchParams();
-  const trainingTypeFromUrl =
-    (searchParams.get('type') as 'Academic' | 'General Training' | null);
+  const initialTrainingType =
+    (searchParams.get('type') as 'Academic' | 'General Training' | null) || 'Academic';
 
+  const [trainingType, setTrainingType] = useState(initialTrainingType);
   const [isLoading, setIsLoading] = useState(false);
   const [isFeedbackLoading, setIsFeedbackLoading] = useState(false);
   const [generatedTopic, setGeneratedTopic] =
@@ -102,16 +102,15 @@ function WritingPractice() {
     resolver: zodResolver(TopicFormSchema),
     defaultValues: {
       task: 'Task 2',
-      trainingType: trainingTypeFromUrl || 'Academic',
+      trainingType: initialTrainingType,
       topic: '',
     },
   });
 
   useEffect(() => {
-    if (trainingTypeFromUrl) {
-      topicForm.setValue('trainingType', trainingTypeFromUrl);
-    }
-  }, [trainingTypeFromUrl, topicForm]);
+    setTrainingType(initialTrainingType);
+    topicForm.setValue('trainingType', initialTrainingType);
+  }, [initialTrainingType, topicForm]);
 
   const essayForm = useForm<EssayFormValues>({
     resolver: zodResolver(EssayFormSchema),
@@ -153,7 +152,7 @@ function WritingPractice() {
   };
 
   const onEssaySubmit: SubmitHandler<EssayFormValues> = async (data) => {
-    if (!generatedTopic || !trainingTypeFromUrl) return;
+    if (!generatedTopic || !trainingType) return;
     setIsFeedbackLoading(true);
     setAnalyzedEssay(null);
 
@@ -169,7 +168,7 @@ function WritingPractice() {
         type: 'essay',
         essay: data.essay,
         topic: generatedTopic.topic,
-        trainingType: trainingTypeFromUrl,
+        trainingType: trainingType,
         task: topicForm.getValues('task'),
         createdAt: new Date().toISOString(),
         feedback,
@@ -194,7 +193,7 @@ function WritingPractice() {
     topicForm.reset({
       task: 'Task 2',
       topic: '',
-      trainingType: trainingTypeFromUrl || 'Academic',
+      trainingType: trainingType,
     });
   };
 
@@ -239,7 +238,7 @@ function WritingPractice() {
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <AppHeader title={`Writing Practice (${trainingTypeFromUrl || '...'})`}>
+      <AppHeader title={`Writing Practice (${trainingType})`}>
         {(generatedTopic || analyzedEssay) && (
           <Button variant="outline" onClick={handleStartOver}>
             <RefreshCcw className="mr-2 size-4" />
@@ -506,7 +505,7 @@ function WritingPractice() {
                         </div>
                       </AccordionTrigger>
                       <AccordionContent>
-                        <div
+                         <div
                           className="prose dark:prose-invert max-w-none"
                           dangerouslySetInnerHTML={{
                             __html: analyzedEssay.feedback.taskResponse.feedback,
@@ -543,7 +542,7 @@ function WritingPractice() {
                         </div>
                       </AccordionTrigger>
                       <AccordionContent>
-                        <div
+                         <div
                           className="prose dark:prose-invert max-w-none"
                           dangerouslySetInnerHTML={{
                             __html:
