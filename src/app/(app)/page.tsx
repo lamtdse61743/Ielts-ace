@@ -243,7 +243,7 @@ export default function PracticeQuestionsPage() {
             <AlertDescription className="prose prose-sm dark:prose-invert max-w-none space-y-1">
               <p><strong>Your answer:</strong> {feedbackItem.userAnswer}</p>
               <p><strong>Correct answer:</strong> {feedbackItem.correctAnswer}</p>
-              <p className="whitespace-pre-wrap"><strong>Explanation:</strong> {feedbackItem.explanation}</p>
+              <div dangerouslySetInnerHTML={{ __html: feedbackItem.explanation }} />
             </AlertDescription>
           </Alert>
         )}
@@ -368,9 +368,7 @@ export default function PracticeQuestionsPage() {
                     </Button>
                   </CardHeader>
                   <CardContent>
-                      <div className="prose prose-sm dark:prose-invert max-w-none whitespace-pre-wrap">
-                          {currentPassage.passageText}
-                      </div>
+                      <div className="prose prose-sm dark:prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: currentPassage.passageText }} />
                   </CardContent>
                 </Card>
 

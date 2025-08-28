@@ -19,11 +19,11 @@ const EssayFeedbackInputSchema = z.object({
 export type EssayFeedbackInput = z.infer<typeof EssayFeedbackInputSchema>;
 
 const EssayFeedbackOutputSchema = z.object({
-  grammar: z.string().describe('Feedback on the grammar of the essay.'),
-  vocabulary: z.string().describe('Feedback on the vocabulary used in the essay.'),
-  coherence: z.string().describe('Feedback on the coherence and flow of the essay.'),
-  argumentation: z.string().describe('Feedback on the argumentation presented in the essay.'),
-  overallFeedback: z.string().describe('Overall feedback and suggestions for improvement.'),
+  grammar: z.string().describe('Feedback on the grammar of the essay, in HTML format.'),
+  vocabulary: z.string().describe('Feedback on the vocabulary used in the essay, in HTML format.'),
+  coherence: z.string().describe('Feedback on the coherence and flow of the essay, in HTML format.'),
+  argumentation: z.string().describe('Feedback on the argumentation presented in the essay, in HTML format.'),
+  overallFeedback: z.string().describe('Overall feedback and suggestions for improvement, in HTML format.'),
 });
 export type EssayFeedbackOutput = z.infer<typeof EssayFeedbackOutputSchema>;
 
@@ -35,7 +35,18 @@ const prompt = ai.definePrompt({
   name: 'essayFeedbackPrompt',
   input: {schema: EssayFeedbackInputSchema},
   output: {schema: EssayFeedbackOutputSchema},
-  prompt: `You are an AI essay feedback assistant. Your task is to provide feedback on an essay based on the following criteria:\n\n*   Grammar: Identify and correct grammatical errors. Suggest improvements to sentence structure.\n*   Vocabulary: Assess the richness and appropriateness of the vocabulary. Suggest alternative word choices to enhance clarity and impact.\n*   Coherence: Evaluate the logical flow and organization of ideas. Provide recommendations on improving transitions and paragraph structure.\n*   Argumentation: Analyze the strength and validity of the arguments presented. Offer guidance on strengthening claims and providing evidence.\n\nEssay Topic: {{{topic}}}\nEssay Instructions (if any): {{{instructions}}}\nEssay: {{{essay}}}\n\nPlease provide detailed feedback in each of the following categories. Make sure to follow the EssayFeedbackOutputSchema output schema. The Zod descriptions there are instructions for what your output should contain. Focus on being helpful and actionable.
+  prompt: `You are an AI essay feedback assistant. Your task is to provide feedback on an essay based on the following criteria. Format your response in HTML (e.g., use <p> for paragraphs and <ul>/<li)> for lists).
+
+*   Grammar: Identify and correct grammatical errors. Suggest improvements to sentence structure.
+*   Vocabulary: Assess the richness and appropriateness of the vocabulary. Suggest alternative word choices to enhance clarity and impact.
+*   Coherence: Evaluate the logical flow and organization of ideas. Provide recommendations on improving transitions and paragraph structure.
+*   Argumentation: Analyze the strength and validity of the arguments presented. Offer guidance on strengthening claims and providing evidence.
+
+Essay Topic: {{{topic}}}
+Essay Instructions (if any): {{{instructions}}}
+Essay: {{{essay}}}
+
+Please provide detailed feedback in each of the following categories. Make sure to follow the EssayFeedbackOutputSchema output schema. The Zod descriptions there are instructions for what your output should contain. Focus on being helpful and actionable.
 `,
 });
 

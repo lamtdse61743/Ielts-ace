@@ -58,7 +58,7 @@ export type ReadingQuestion = z.infer<typeof ReadingQuestionSchema>;
 const PassageSchema = z.object({
     passageNumber: z.number().describe('The number of the passage (1, 2, or 3).'),
     passageTitle: z.string().optional().describe('An optional title for the reading passage.'),
-    passageText: z.string().describe('The full text of the reading passage.'),
+    passageText: z.string().describe('The full text of the reading passage, formatted as HTML with paragraph tags.'),
     questions: z.array(ReadingQuestionSchema).describe('An array of questions associated with this passage.'),
 });
 export type Passage = z.infer<typeof PassageSchema>;
@@ -85,6 +85,8 @@ const prompt = ai.definePrompt({
 The test must contain exactly 3 reading passages.
 The total number of questions across all 3 passages must be exactly 40.
 The difficulty should increase with each passage (Passage 1 should be the easiest, Passage 3 the hardest).
+
+Format the passageText as a single block of HTML. Use <p> tags for paragraphs and <strong> tags to mark paragraph letters (e.g., <strong>A</strong>).
 
 Based on the Training Type ({{{trainingType}}}), the passages should be:
 - Academic: Texts from academic journals, books, magazines, and newspapers. The tone should be formal and academic.

@@ -174,32 +174,32 @@ export default function EssayFeedbackPage() {
                   <Accordion type="multiple" defaultValue={['overall', 'grammar']} className="w-full">
                     <AccordionItem value="overall">
                       <AccordionTrigger className='text-base font-semibold'><Zap className="mr-2 size-4 text-primary"/>Overall Feedback</AccordionTrigger>
-                      <AccordionContent className="prose prose-sm dark:prose-invert max-w-none whitespace-pre-wrap p-2 text-sm leading-relaxed">
-                        {analyzedEssay.feedback.overallFeedback}
+                      <AccordionContent className="prose prose-sm dark:prose-invert max-w-none p-2 text-sm leading-relaxed">
+                        <div dangerouslySetInnerHTML={{ __html: analyzedEssay.feedback.overallFeedback }} />
                       </AccordionContent>
                     </AccordionItem>
                     <AccordionItem value="grammar">
                       <AccordionTrigger className='text-base font-semibold'><SpellCheck className="mr-2 size-4 text-primary"/>Grammar</AccordionTrigger>
-                      <AccordionContent className="prose prose-sm dark:prose-invert max-w-none whitespace-pre-wrap p-2 text-sm leading-relaxed">
-                        {analyzedEssay.feedback.grammar}
+                      <AccordionContent className="prose prose-sm dark:prose-invert max-w-none p-2 text-sm leading-relaxed">
+                        <div dangerouslySetInnerHTML={{ __html: analyzedEssay.feedback.grammar }} />
                       </AccordionContent>
                     </AccordionItem>
                     <AccordionItem value="vocabulary">
                       <AccordionTrigger className='text-base font-semibold'><BrainCircuit className="mr-2 size-4 text-primary"/>Vocabulary</AccordionTrigger>
-                      <AccordionContent className="prose prose-sm dark:prose-invert max-w-none whitespace-pre-wrap p-2 text-sm leading-relaxed">
-                        {analyzedEssay.feedback.vocabulary}
+                      <AccordionContent className="prose prose-sm dark:prose-invert max-w-none p-2 text-sm leading-relaxed">
+                        <div dangerouslySetInnerHTML={{ __html: analyzedEssay.feedback.vocabulary }} />
                       </AccordionContent>
                     </AccordionItem>
                     <AccordionItem value="coherence">
                       <AccordionTrigger className='text-base font-semibold'><Waypoints className="mr-2 size-4 text-primary"/>Coherence</AccordionTrigger>
-                      <AccordionContent className="prose prose-sm dark:prose-invert max-w-none whitespace-pre-wrap p-2 text-sm leading-relaxed">
-                        {analyzedEssay.feedback.coherence}
+                      <AccordionContent className="prose prose-sm dark:prose-invert max-w-none p-2 text-sm leading-relaxed">
+                        <div dangerouslySetInnerHTML={{ __html: analyzedEssay.feedback.coherence }} />
                       </AccordionContent>
                     </AccordionItem>
                      <AccordionItem value="argumentation">
                       <AccordionTrigger className='text-base font-semibold'><BrainCircuit className="mr-2 size-4 text-primary"/>Argumentation</AccordionTrigger>
-                      <AccordionContent className="prose prose-sm dark:prose-invert max-w-none whitespace-pre-wrap p-2 text-sm leading-relaxed">
-                        {analyzedEssay.feedback.argumentation}
+                      <AccordionContent className="prose prose-sm dark:prose-invert max-w-none p-2 text-sm leading-relaxed">
+                        <div dangerouslySetInnerHTML={{ __html: analyzedEssay.feedback.argumentation }} />
                       </AccordionContent>
                     </AccordionItem>
                   </Accordion>
