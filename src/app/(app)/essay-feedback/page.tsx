@@ -150,7 +150,7 @@ export default function EssayFeedbackPage() {
                 </CardFooter>
               </form>
             </Card>
-          </Card>
+          </div>
 
           <div className="lg:col-span-2">
             {isLoading && (
@@ -232,5 +232,3 @@ export default function EssayFeedbackPage() {
     </div>
   );
 }
-
-    
