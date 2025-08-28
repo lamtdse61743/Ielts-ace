@@ -32,8 +32,8 @@ export type GeneratePracticeQuestionInput = z.infer<
 >;
 
 const ReadingQuestionSchema = z.object({
-  questionNumber: z.number().describe('The number of the question in the sequence (1-40).'),
-  questionText: z.string().describe('The main text or instruction for the question, including any specific guidance (e.g., "Choose ONE WORD ONLY"). This should be formatted in HTML.'),
+  questionNumber: z.number().describe('The number of the question in the sequence (e.g., 1, 2, 3).'),
+  questionText: z.string().describe('The main text for the question. This should be formatted in HTML. Instructions should NOT be in this field.'),
   questionType: z.enum([
     'multiple-choice',
     'true-false-not-given',
@@ -55,11 +55,17 @@ const ReadingQuestionSchema = z.object({
 });
 export type ReadingQuestion = z.infer<typeof ReadingQuestionSchema>;
 
+const QuestionGroupSchema = z.object({
+    instruction: z.string().describe('The instruction for this group of questions (e.g., "Choose ONE WORD ONLY from the passage for each answer."). This should be formatted in HTML and apply to all questions in the `questions` array.'),
+    questions: z.array(ReadingQuestionSchema).describe('An array of questions that share the same instruction.'),
+});
+export type QuestionGroup = z.infer<typeof QuestionGroupSchema>;
+
 const PassageSchema = z.object({
     passageNumber: z.number().describe('The number of the passage (1, 2, or 3).'),
     passageTitle: z.string().optional().describe('An optional title for the reading passage.'),
     passageText: z.string().describe('The full text of the reading passage, formatted as HTML with paragraph tags.'),
-    questions: z.array(ReadingQuestionSchema).describe('An array of questions associated with this passage.'),
+    questionGroups: z.array(QuestionGroupSchema).describe('An array of question groups associated with this passage. All questions for a passage must be inside a group.'),
 });
 export type Passage = z.infer<typeof PassageSchema>;
 
@@ -92,28 +98,15 @@ Based on the Training Type ({{{trainingType}}}), the passages should be:
 - Academic: Texts from academic journals, books, magazines, and newspapers. The tone should be formal and academic.
 - General Training: Texts from advertisements, official documents, company handbooks, books, and newspapers. The context should be more related to everyday situations.
 
-Each passage must have a set of associated questions. You must create a mix of question types from the following list:
-- multiple-choice
-- true-false-not-given
-- yes-no-not-given
-- matching-headings (provide a list of headings in 'options')
-- matching-information
-- matching-features
-- matching-sentence-endings
-- sentence-completion
-- summary-completion
-- note-completion
-- table-completion
-- flow-chart-completion
-- diagram-completion
-- short-answer
+Each passage must have a set of associated questions. You must group questions by their type. For example, if questions 1-5 are 'sentence-completion' and 6-10 are 'multiple-choice', you should create two groups.
 
-For each question, the 'questionText' field must include clear, concise instructions for the user. For example:
+For each group, provide a single, clear 'instruction' that applies to all questions in that group. The instruction text must be formatted in HTML (e.g., using <p>, <strong>, <ul>, <li>).
+The individual 'questionText' for each question should NOT contain any instructions.
+
+Example Instructions:
 - For sentence completion: 'Complete the sentences below. Choose ONE WORD ONLY from the passage for each answer.'
 - For multiple choice: 'Choose the correct letter, A, B, C or D.'
-- For short-answer: 'Answer the questions below. Choose NO MORE THAN TWO WORDS from the passage for each answer.'
 - For matching headings: 'The reading passage has seven paragraphs, A-G. Choose the correct heading for each paragraph from the list of headings below.'
-- The question text itself, along with the instructions, must be formatted in HTML (e.g., using <p>, <strong>, <ul>, <li>).
 
 Ensure the question numbering is sequential from 1 to 40 across all three passages.
 Your entire response must be in a single JSON object that strictly follows the output schema.
@@ -151,26 +144,19 @@ const generatePracticeQuestionFlow = ai.defineFlow(
     outputSchema: GeneratePracticeQuestionOutputSchema,
   },
   async input => {
-    // For reading comprehension, we force the questionType to be 'reading-comprehension'
-    // and provide a more structured prompt.
-    if (input.questionType === 'reading-comprehension') {
-       const {output} = await prompt(input);
-       return output!;
-    }
+    const {output} = await prompt(input);
     
-    // This part is for other question types, which we are not focusing on now.
-    const nonReadingPrompt = ai.definePrompt({
-        name: 'generateSimpleQuestion',
-        input: { schema: z.object({ questionType: z.string(), topic: z.string().optional(), difficulty: z.string().optional() })},
-        output: { schema: z.object({ question: z.string(), answer: z.string() }) },
-        prompt: `Generate a single IELTS practice question for a non-reading task.
-        Question Type: {{{questionType}}}
-        Topic: {{{topic}}}
-        Difficulty: {{{difficulty}}}
-        `,
-    });
+    // Fallback for older schema if AI returns questions outside of groups
+    if (output && output.passages) {
+      output.passages.forEach(p => {
+        const ungroupedQuestions = (p as any).questions;
+        if (ungroupedQuestions && Array.isArray(ungroupedQuestions) && ungroupedQuestions.length > 0) {
+          p.questionGroups = [{ instruction: 'Answer the questions below.', questions: ungroupedQuestions }];
+          delete (p as any).questions;
+        }
+      });
+    }
 
-    const { output } = await nonReadingPrompt(input);
-    return { passages: [ { passageNumber: 1, passageText: '', questions: [{...output!, questionNumber: 1, questionType: 'short-answer'}] }] };
+    return output!;
   }
 );

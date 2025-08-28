@@ -9,6 +9,11 @@ export type ReadingQuestion = {
   answer: string;
 };
 
+export type QuestionGroup = {
+    instruction: string;
+    questions: ReadingQuestion[];
+}
+
 export type GeneratedQuestion = {
   id: string;
   type: 'question';

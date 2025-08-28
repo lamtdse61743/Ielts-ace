@@ -5,7 +5,7 @@ import { useForm, type SubmitHandler, type FieldValues } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { v4 as uuidv4 } from 'uuid';
-import { generatePracticeQuestion, type Passage } from '@/ai/flows/generate-practice-question';
+import { generatePracticeQuestion, type QuestionGroup, type ReadingQuestion } from '@/ai/flows/generate-practice-question';
 import { readingFeedback, type ReadingFeedbackOutput } from '@/ai/flows/reading-feedback';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -58,7 +58,7 @@ export default function PracticeQuestionsPage() {
   const handleApiError = (error: any, defaultMessage: string) => {
     console.error('API Error:', error);
     let description = defaultMessage;
-    if (error instanceof Error && error.message.includes('429')) {
+    if (error instanceof Error && (error.message.includes('429') || error.message.includes('rate limit'))) {
       description = 'API rate limit exceeded. Please check your billing status or try again later.';
     }
     toast({
@@ -109,15 +109,17 @@ export default function PracticeQuestionsPage() {
     
     let correctAnswers = 0;
     generatedContent.passages.forEach(passage => {
-      passage.questions.forEach((q) => {
-        const userAnswer = data[`q_${q.questionNumber}`];
-        if (userAnswer && userAnswer.toLowerCase().trim() === q.answer.toLowerCase().trim()) {
-          correctAnswers++;
-        }
+      passage.questionGroups.forEach(group => {
+        group.questions.forEach((q) => {
+          const userAnswer = data[`q_${q.questionNumber}`];
+          if (userAnswer && userAnswer.toLowerCase().trim() === q.answer.toLowerCase().trim()) {
+            correctAnswers++;
+          }
+        });
       });
     });
 
-    const totalQuestions = generatedContent.passages.reduce((sum, p) => sum + p.questions.length, 0);
+    const totalQuestions = generatedContent.passages.reduce((sum, p) => sum + p.questionGroups.reduce((s, g) => s + g.questions.length, 0), 0);
     setScore(correctAnswers);
     toast({
       title: "Submitted!",
@@ -133,16 +135,29 @@ export default function PracticeQuestionsPage() {
     const userAnswers = readingForm.getValues();
 
     try {
+      const allQuestionsAndAnswers = generatedContent.passages.flatMap(passage => 
+        passage.questionGroups.flatMap(group => 
+          group.questions.map(q => ({
+            questionText: `Q${q.questionNumber}: ${q.questionText}`,
+            userAnswer: userAnswers[`q_${q.questionNumber}`] || 'Not answered',
+            correctAnswer: q.answer,
+            passageText: passage.passageText
+          }))
+        )
+      );
+
       const feedbackPromises = generatedContent.passages.map(passage => {
-        const questionsAndAnswers = passage.questions.map((q) => ({
-          questionText: q.questionText,
-          userAnswer: userAnswers[`q_${q.questionNumber}`] || 'Not answered',
-          correctAnswer: q.answer,
-        }));
-        
+        const passageQuestions = passage.questionGroups.flatMap(group => 
+          group.questions.map(q => ({
+            questionText: `Q${q.questionNumber}: ${q.questionText}`, // Keep consistent format for feedback lookup
+            userAnswer: userAnswers[`q_${q.questionNumber}`] || 'Not answered',
+            correctAnswer: q.answer,
+          }))
+        );
+
         return readingFeedback({
-          passage: passage.passageText,
-          questionsAndAnswers: questionsAndAnswers,
+            passage: passage.passageText,
+            questionsAndAnswers: passageQuestions
         });
       });
 
@@ -152,13 +167,7 @@ export default function PracticeQuestionsPage() {
       feedbackResults.forEach(result => {
         combinedFeedback.feedback.push(...result.feedback);
       });
-      // Sort feedback by question number to ensure it matches the display order
-      combinedFeedback.feedback.sort((a, b) => {
-          const aNum = parseInt(a.questionText.split('.')[0]);
-          const bNum = parseInt(b.questionText.split('.')[0]);
-          return aNum - bNum;
-      });
-
+      
       setFeedback(combinedFeedback);
 
     } catch (error) {
@@ -179,9 +188,9 @@ export default function PracticeQuestionsPage() {
     }
   };
   
-  const renderQuestion = (question: any, index: number) => {
+  const renderQuestion = (question: ReadingQuestion) => {
     const fieldName = `q_${question.questionNumber}`;
-    const feedbackItem = feedback?.feedback.find(f => f.questionText.startsWith(question.questionText.split('. ')[0]));
+    const feedbackItem = feedback?.feedback.find(f => f.questionText.startsWith(`Q${question.questionNumber}:`));
 
     const questionContent = () => {
        switch (question.questionType) {
@@ -190,8 +199,8 @@ export default function PracticeQuestionsPage() {
         case 'matching-features':
         case 'matching-sentence-endings':
           return (
-            <div>
-              <div className="mb-3 prose prose-sm dark:prose-invert max-w-none" dangerouslySetInnerHTML={{__html: question.questionText}}/>
+            <>
+              <div className="mb-3 prose prose-sm dark:prose-invert max-w-none" dangerouslySetInnerHTML={{__html: `<strong>${question.questionNumber}.</strong> ${question.questionText}`}}/>
               <RadioGroup onValueChange={(value) => readingForm.setValue(fieldName, value)} className="space-y-2">
                 {question.options?.map((option: string, i: number) => (
                   <FormItem key={i} className="flex items-center space-x-3">
@@ -202,7 +211,7 @@ export default function PracticeQuestionsPage() {
                   </FormItem>
                 ))}
               </RadioGroup>
-            </div>
+            </>
           );
         case 'true-false-not-given':
         case 'yes-no-not-given':
@@ -210,8 +219,8 @@ export default function PracticeQuestionsPage() {
             ? ['True', 'False', 'Not Given'] 
             : ['Yes', 'No', 'Not Given'];
           return (
-            <div>
-              <div className="mb-3 prose prose-sm dark:prose-invert max-w-none" dangerouslySetInnerHTML={{__html: question.questionText}}/>
+            <>
+              <div className="mb-3 prose prose-sm dark:prose-invert max-w-none" dangerouslySetInnerHTML={{__html: `<strong>${question.questionNumber}.</strong> ${question.questionText}`}}/>
               <RadioGroup onValueChange={(value) => readingForm.setValue(fieldName, value)} className="flex space-x-4">
                 {options.map((opt, i) => (
                   <FormItem key={i} className="flex items-center space-x-3">
@@ -222,7 +231,7 @@ export default function PracticeQuestionsPage() {
                   </FormItem>
                 ))}
               </RadioGroup>
-            </div>
+            </>
           );
         case 'short-answer':
         case 'sentence-completion':
@@ -232,10 +241,10 @@ export default function PracticeQuestionsPage() {
         case 'flow-chart-completion':
         case 'diagram-completion':
            return (
-            <div>
-              <div className="mb-3 prose prose-sm dark:prose-invert max-w-none" dangerouslySetInnerHTML={{__html: question.questionText}}/>
+            <>
+              <div className="mb-3 prose prose-sm dark:prose-invert max-w-none" dangerouslySetInnerHTML={{__html: `<strong>${question.questionNumber}.</strong> ${question.questionText}`}}/>
               <Input {...readingForm.register(fieldName)} disabled={score !== null} placeholder="Your answer" />
-            </div>
+            </>
           );
         default:
           return <p className="text-sm text-muted-foreground">Unsupported question type: {question.questionType}</p>;
@@ -243,14 +252,14 @@ export default function PracticeQuestionsPage() {
     };
     
     return (
-      <div key={index} className="mb-6">
+      <div key={question.questionNumber} className="mb-6">
          <FormField
           control={readingForm.control}
           name={fieldName}
           render={() => (
             <FormItem className="rounded-md border p-4">
               <FormControl>
-                {questionContent()}
+                <div>{questionContent()}</div>
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -272,7 +281,7 @@ export default function PracticeQuestionsPage() {
   };
   
   const currentPassage = generatedContent?.passages?.[currentPassageIndex];
-  const totalQuestions = generatedContent?.passages?.reduce((sum, p) => sum + p.questions.length, 0) || 0;
+  const totalQuestions = generatedContent?.passages?.reduce((sum, p) => sum + p.questionGroups.reduce((s, g) => s + g.questions.length, 0), 0) || 0;
   
   return (
     <div className="flex h-full min-h-0 flex-col">
@@ -398,7 +407,12 @@ export default function PracticeQuestionsPage() {
                   <CardContent>
                     <Form {...readingForm}>
                       <form onSubmit={readingForm.handleSubmit(onAnswersSubmit)}>
-                        {currentPassage.questions.map(renderQuestion)}
+                        {currentPassage.questionGroups.map((group, groupIndex) => (
+                           <div key={groupIndex} className="mb-8">
+                            <div className="prose prose-sm dark:prose-invert max-w-none mb-4 rounded-md bg-muted p-4" dangerouslySetInnerHTML={{ __html: group.instruction }} />
+                            {group.questions.map(renderQuestion)}
+                          </div>
+                        ))}
                         {currentPassageIndex === (generatedContent.passages.length - 1) && score === null && (
                           <div className="mt-6 flex items-center justify-between gap-4">
                             <Button type="submit" disabled={score !== null}>Submit All Answers</Button>
@@ -448,5 +462,3 @@ export default function PracticeQuestionsPage() {
     </div>
   );
 }
-
-    
