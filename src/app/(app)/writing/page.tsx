@@ -84,8 +84,7 @@ type EssayFormValues = z.infer<typeof EssayFormSchema>;
 function WritingPractice() {
   const searchParams = useSearchParams();
   const initialTrainingType =
-    (searchParams.get('type') as 'Academic' | 'General Training' | null) ||
-    'Academic';
+    (searchParams.get('type') as 'Academic' | 'General Training' | null)
 
   const [isLoading, setIsLoading] = useState(false);
   const [isFeedbackLoading, setIsFeedbackLoading] = useState(false);
@@ -103,7 +102,7 @@ function WritingPractice() {
     resolver: zodResolver(TopicFormSchema),
     defaultValues: {
       task: 'Task 2',
-      trainingType: initialTrainingType,
+      trainingType: 'Academic',
       topic: '',
     },
   });
@@ -488,12 +487,14 @@ function WritingPractice() {
                           Key Improvements
                         </div>
                       </AccordionTrigger>
-                      <AccordionContent
-                        className="prose dark:prose-invert max-w-none"
-                        dangerouslySetInnerHTML={{
-                          __html: analyzedEssay.feedback.improvements,
-                        }}
-                      />
+                      <AccordionContent>
+                        <div
+                          className="prose dark:prose-invert max-w-none"
+                          dangerouslySetInnerHTML={{
+                            __html: analyzedEssay.feedback.improvements,
+                          }}
+                        />
+                      </AccordionContent>
                     </AccordionItem>
                     <AccordionItem value="taskResponse">
                       <AccordionTrigger className="text-lg">
@@ -504,12 +505,14 @@ function WritingPractice() {
                            <div className="text-base font-semibold rounded-md bg-muted px-2 py-1">Band: {analyzedEssay.feedback.taskResponse.band}</div>
                         </div>
                       </AccordionTrigger>
-                      <AccordionContent
-                        className="prose dark:prose-invert max-w-none"
-                        dangerouslySetInnerHTML={{
-                          __html: analyzedEssay.feedback.taskResponse.feedback,
-                        }}
-                      />
+                      <AccordionContent>
+                        <div
+                          className="prose dark:prose-invert max-w-none"
+                          dangerouslySetInnerHTML={{
+                            __html: analyzedEssay.feedback.taskResponse.feedback,
+                          }}
+                        />
+                      </AccordionContent>
                     </AccordionItem>
                     <AccordionItem value="coherence">
                       <AccordionTrigger className="text-lg">
@@ -520,13 +523,15 @@ function WritingPractice() {
                            <div className="text-base font-semibold rounded-md bg-muted px-2 py-1">Band: {analyzedEssay.feedback.coherenceAndCohesion.band}</div>
                         </div>
                       </AccordionTrigger>
-                      <AccordionContent
-                        className="prose dark:prose-invert max-w-none"
-                        dangerouslySetInnerHTML={{
-                          __html:
-                            analyzedEssay.feedback.coherenceAndCohesion.feedback,
-                        }}
-                      />
+                      <AccordionContent>
+                        <div
+                          className="prose dark:prose-invert max-w-none"
+                          dangerouslySetInnerHTML={{
+                            __html:
+                              analyzedEssay.feedback.coherenceAndCohesion.feedback,
+                          }}
+                        />
+                      </AccordionContent>
                     </AccordionItem>
                     <AccordionItem value="lexical">
                       <AccordionTrigger className="text-lg">
@@ -537,13 +542,15 @@ function WritingPractice() {
                            <div className="text-base font-semibold rounded-md bg-muted px-2 py-1">Band: {analyzedEssay.feedback.lexicalResource.band}</div>
                         </div>
                       </AccordionTrigger>
-                      <AccordionContent
-                        className="prose dark:prose-invert max-w-none"
-                        dangerouslySetInnerHTML={{
-                          __html:
-                            analyzedEssay.feedback.lexicalResource.feedback,
-                        }}
-                      />
+                      <AccordionContent>
+                        <div
+                          className="prose dark:prose-invert max-w-none"
+                          dangerouslySetInnerHTML={{
+                            __html:
+                              analyzedEssay.feedback.lexicalResource.feedback,
+                          }}
+                        />
+                      </AccordionContent>
                     </AccordionItem>
                     <AccordionItem value="grammar">
                       <AccordionTrigger className="text-lg">
@@ -554,13 +561,15 @@ function WritingPractice() {
                            <div className="text-base font-semibold rounded-md bg-muted px-2 py-1">Band: {analyzedEssay.feedback.grammaticalRangeAndAccuracy.band}</div>
                         </div>
                       </AccordionTrigger>
-                      <AccordionContent
-                        className="prose dark:prose-invert max-w-none"
-                        dangerouslySetInnerHTML={{
-                          __html:
-                            analyzedEssay.feedback.grammaticalRangeAndAccuracy.feedback,
-                        }}
-                      />
+                       <AccordionContent>
+                        <div
+                          className="prose dark:prose-invert max-w-none"
+                          dangerouslySetInnerHTML={{
+                            __html:
+                              analyzedEssay.feedback.grammaticalRangeAndAccuracy.feedback,
+                          }}
+                        />
+                      </AccordionContent>
                     </AccordionItem>
                      <AccordionItem value="errors">
                       <AccordionTrigger className="text-lg">
