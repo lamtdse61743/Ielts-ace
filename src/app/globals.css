@@ -77,3 +77,42 @@
     -moz-osx-font-smoothing: grayscale;
   }
 }
+
+@layer components {
+  .running-cat {
+    position: relative;
+    animation: run-across 4s linear infinite;
+    width: 48px; 
+    height: 48px;
+  }
+
+  .running-cat-shadow {
+    position: absolute;
+    bottom: -4px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 30px;
+    height: 6px;
+    background-color: hsl(var(--foreground) / 0.1);
+    border-radius: 50%;
+    animation: shadow-bounce 0.5s infinite alternate;
+  }
+  
+  @keyframes run-across {
+    from {
+      transform: translateX(-150vw);
+    }
+    to {
+      transform: translateX(150vw);
+    }
+  }
+
+  @keyframes shadow-bounce {
+    from {
+      transform: translateX(-50%) scale(1);
+    }
+    to {
+      transform: translateX(-50%) scale(0.8);
+    }
+  }
+}
