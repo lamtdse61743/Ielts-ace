@@ -1,22 +1,23 @@
 import type { EssayFeedbackOutput } from '@/ai/flows/essay-feedback';
-import type { GeneratePracticeQuestionOutput } from '@/ai/flows/generate-practice-question';
+import type { Passage } from '@/ai/flows/generate-practice-question';
 
 export type ReadingQuestion = {
+  questionNumber: number;
   questionText: string;
-  questionType: 'multiple-choice' | 'true-false';
+  questionType: string;
   options?: string[];
   answer: string;
 };
 
-export type GeneratedQuestion = GeneratePracticeQuestionOutput & {
+export type GeneratedQuestion = {
   id: string;
   type: 'question';
-  questionType: string;
+  questionType: 'reading-comprehension';
+  trainingType?: 'Academic' | 'General Training';
   topic?: string;
   difficulty?: string;
   createdAt: string;
-  passage?: string;
-  questions?: ReadingQuestion[];
+  passages: Passage[];
 };
 
 export type AnalyzedEssay = {

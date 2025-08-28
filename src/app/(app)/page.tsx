@@ -5,7 +5,7 @@ import { useForm, type SubmitHandler, type FieldValues } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { v4 as uuidv4 } from 'uuid';
-import { generatePracticeQuestion } from '@/ai/flows/generate-practice-question';
+import { generatePracticeQuestion, type Passage } from '@/ai/flows/generate-practice-question';
 import { readingFeedback, type ReadingFeedbackOutput } from '@/ai/flows/reading-feedback';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,34 +16,31 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { AppHeader } from '@/components/app-header';
 import { ExamTimer } from '@/components/exam-timer';
-import type { GeneratedQuestion, ReadingQuestion } from '@/lib/types';
+import type { GeneratedQuestion, SavedContent } from '@/lib/types';
 import { useSavedContent } from '@/hooks/use-saved-content';
-import { Bookmark, Loader2, CheckCircle2, XCircle, RefreshCcw } from 'lucide-react';
+import { Bookmark, Loader2, CheckCircle2, XCircle, RefreshCcw, ArrowLeft, ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Progress } from '@/components/ui/progress';
 
 const FormSchema = z.object({
-  questionType: z.string().min(1, 'Please select a question type.'),
+  questionType: z.literal('reading-comprehension'),
+  trainingType: z.enum(['Academic', 'General Training']),
   difficulty: z.string().min(1, 'Please select a difficulty level.'),
   topic: z.string().optional(),
 });
 
 type FormValues = z.infer<typeof FormSchema>;
 
-const questionTypes = [
-  { value: 'reading-comprehension', label: 'Reading Comprehension', time: 1200 }, // 20 mins
-  { value: 'essay', label: 'Essay Writing (Task 2)', time: 2400 }, // 40 mins
-  { value: 'listening', label: 'Listening', time: 1800 }, // 30 mins
-];
-
 export default function PracticeQuestionsPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isFeedbackLoading, setIsFeedbackLoading] = useState(false);
   const [generatedContent, setGeneratedContent] = useState<GeneratedQuestion | null>(null);
-  const [timerDuration, setTimerDuration] = useState(2400);
   const [score, setScore] = useState<number | null>(null);
   const [feedback, setFeedback] = useState<ReadingFeedbackOutput | null>(null);
+  const [currentPassageIndex, setCurrentPassageIndex] = useState(0);
+
   const { toast } = useToast();
   const { addSavedItem, removeSavedItem, isSaved } = useSavedContent();
 
@@ -51,6 +48,7 @@ export default function PracticeQuestionsPage() {
     resolver: zodResolver(FormSchema),
     defaultValues: {
       questionType: 'reading-comprehension',
+      trainingType: 'Academic',
       difficulty: 'medium',
       topic: '',
     },
@@ -64,6 +62,7 @@ export default function PracticeQuestionsPage() {
     setScore(null);
     setFeedback(null);
     readingForm.reset();
+    setCurrentPassageIndex(0);
     try {
       const result = await generatePracticeQuestion(data);
       const content: GeneratedQuestion = {
@@ -71,13 +70,12 @@ export default function PracticeQuestionsPage() {
         id: uuidv4(),
         type: 'question',
         questionType: data.questionType,
+        trainingType: data.trainingType,
         topic: data.topic,
         difficulty: data.difficulty,
         createdAt: new Date().toISOString(),
       };
       setGeneratedContent(content);
-      const selectedType = questionTypes.find(qt => qt.value === data.questionType);
-      setTimerDuration(selectedType?.time || 2400);
     } catch (error) {
       console.error('Error generating practice question:', error);
       toast({
@@ -96,51 +94,64 @@ export default function PracticeQuestionsPage() {
     setFeedback(null);
     form.reset();
     readingForm.reset();
+    setCurrentPassageIndex(0);
   }
 
   const onAnswersSubmit: SubmitHandler<FieldValues> = (data) => {
-    if (!generatedContent || !generatedContent.questions) return;
+    if (!generatedContent || !generatedContent.passages) return;
     
     let correctAnswers = 0;
-    generatedContent.questions.forEach((q, index) => {
-      if (data[`q_${index}`]?.toLowerCase() === q.answer.toLowerCase()) {
-        correctAnswers++;
-      }
+    generatedContent.passages.forEach(passage => {
+      passage.questions.forEach((q) => {
+        if (data[`q_${q.questionNumber}`]?.toLowerCase() === q.answer.toLowerCase()) {
+          correctAnswers++;
+        }
+      });
     });
+
+    const totalQuestions = generatedContent.passages.reduce((sum, p) => sum + p.questions.length, 0);
     setScore(correctAnswers);
     toast({
       title: "Submitted!",
-      description: `You scored ${correctAnswers} out of ${generatedContent.questions.length}`,
+      description: `You scored ${correctAnswers} out of ${totalQuestions}`,
     });
   };
 
   const handleGetFeedback = async () => {
-    if (!generatedContent || !generatedContent.questions || !generatedContent.passage) return;
+    if (!generatedContent || !generatedContent.passages) return;
     
     setIsFeedbackLoading(true);
     setFeedback(null);
 
+    const currentPassage = generatedContent.passages[currentPassageIndex];
+
     try {
       const userAnswers = readingForm.getValues();
-      const questionsAndAnswers = generatedContent.questions.map((q, index) => ({
-        questionText: q.questionText,
-        userAnswer: userAnswers[`q_${index}`] || 'Not answered',
+      const questionsAndAnswers = currentPassage.questions.map((q) => ({
+        questionText: `${q.questionNumber}. ${q.questionText}`,
+        userAnswer: userAnswers[`q_${q.questionNumber}`] || 'Not answered',
         correctAnswer: q.answer,
       }));
 
       const feedbackResult = await readingFeedback({
-        passage: generatedContent.passage,
+        passage: currentPassage.passageText,
         questionsAndAnswers: questionsAndAnswers,
       });
 
-      setFeedback(feedbackResult);
+      setFeedback(prev => {
+        const newFeedback = { ...(prev?.feedback && Object.fromEntries(prev.feedback.map(f => [f.questionText, f]))) };
+        feedbackResult.feedback.forEach(item => {
+          newFeedback[item.questionText] = item;
+        });
+        return { feedback: Object.values(newFeedback) };
+      });
 
     } catch (error) {
        console.error('Error getting feedback:', error);
       toast({
         variant: 'destructive',
         title: 'Error',
-        description: 'Failed to get feedback. Please try again.',
+        description: 'Failed to get feedback for this passage. Please try again.',
       });
     } finally {
       setIsFeedbackLoading(false);
@@ -154,51 +165,73 @@ export default function PracticeQuestionsPage() {
       removeSavedItem(generatedContent.id);
       toast({ title: 'Removed from saved items.' });
     } else {
-      addSavedItem(generatedContent);
+      addSavedItem(generatedContent as SavedContent);
       toast({ title: 'Saved!', description: 'You can find it in the "Saved Content" section.' });
     }
   };
+  
+  const renderQuestion = (question: any, index: number) => {
+    const fieldName = `q_${question.questionNumber}`;
+    const feedbackItem = feedback?.feedback.find(f => f.questionText.startsWith(`${question.questionNumber}.`));
 
-  const renderQuestion = (question: ReadingQuestion, index: number) => {
-    const fieldName = `q_${index}`;
-    const feedbackItem = feedback?.feedback[index];
-
+    const questionContent = () => {
+      switch (question.questionType) {
+        case 'multiple-choice':
+        case 'matching-headings':
+        case 'matching-features':
+        case 'matching-sentence-endings':
+          return (
+            <RadioGroup onValueChange={readingForm.setValue.bind(readingForm, fieldName)} className="space-y-2">
+              {question.options?.map((option: string, i: number) => (
+                <FormItem key={i} className="flex items-center space-x-3">
+                  <FormControl>
+                    <RadioGroupItem value={option} id={`${fieldName}-${i}`} disabled={score !== null} />
+                  </FormControl>
+                  <FormLabel htmlFor={`${fieldName}-${i}`} className="font-normal">{option}</FormLabel>
+                </FormItem>
+              ))}
+            </RadioGroup>
+          );
+        case 'true-false-not-given':
+        case 'yes-no-not-given':
+          const options = question.questionType === 'true-false-not-given' 
+            ? ['True', 'False', 'Not Given'] 
+            : ['Yes', 'No', 'Not Given'];
+          return (
+            <RadioGroup onValueChange={readingForm.setValue.bind(readingForm, fieldName)} className="flex space-x-4">
+              {options.map((opt, i) => (
+                <FormItem key={i} className="flex items-center space-x-3">
+                  <FormControl>
+                    <RadioGroupItem value={opt} id={`${fieldName}-${i}`} disabled={score !== null} />
+                  </FormControl>
+                  <FormLabel htmlFor={`${fieldName}-${i}`} className="font-normal">{opt}</FormLabel>
+                </FormItem>
+              ))}
+            </RadioGroup>
+          );
+        case 'short-answer':
+        case 'sentence-completion':
+        case 'summary-completion':
+        case 'note-completion':
+        case 'table-completion':
+        case 'flow-chart-completion':
+        case 'diagram-completion':
+           return <Input {...readingForm.register(fieldName)} disabled={score !== null} placeholder="Your answer" />;
+        default:
+          return <p className="text-sm text-muted-foreground">Unsupported question type: {question.questionType}</p>;
+      }
+    };
+    
     return (
-      <div key={index} className="mb-4 rounded-md border p-4">
-        <p className="mb-2 font-semibold">{index + 1}. {question.questionText}</p>
+      <div key={index} className="mb-6 rounded-md border p-4">
+        <p className="mb-3 font-semibold">{question.questionNumber}. {question.questionText}</p>
         <FormField
           control={readingForm.control}
           name={fieldName}
-          render={({ field }) => (
+          render={() => (
             <FormItem>
               <FormControl>
-                {question.questionType === 'multiple-choice' ? (
-                    <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="space-y-2">
-                      {question.options?.map((option, i) => (
-                        <FormItem key={i} className="flex items-center space-x-3">
-                          <FormControl>
-                              <RadioGroupItem value={option} id={`${fieldName}-${i}`} disabled={score !== null}/>
-                          </FormControl>
-                          <FormLabel htmlFor={`${fieldName}-${i}`} className="font-normal">{option}</FormLabel>
-                        </FormItem>
-                      ))}
-                    </RadioGroup>
-                ) : question.questionType === 'true-false' ? (
-                    <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex space-x-4">
-                        <FormItem className="flex items-center space-x-3">
-                          <FormControl>
-                            <RadioGroupItem value="True" id={`${fieldName}-true`} disabled={score !== null}/>
-                          </FormControl>
-                          <FormLabel htmlFor={`${fieldName}-true`} className="font-normal">True</FormLabel>
-                        </FormItem>
-                        <FormItem className="flex items-center space-x-3">
-                          <FormControl>
-                              <RadioGroupItem value="False" id={`${fieldName}-false`} disabled={score !== null}/>
-                          </FormControl>
-                          <FormLabel htmlFor={`${fieldName}-false`} className="font-normal">False</FormLabel>
-                        </FormItem>
-                    </RadioGroup>
-                ) : null}
+                <div>{questionContent()}</div>
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -206,14 +239,8 @@ export default function PracticeQuestionsPage() {
         />
         {feedbackItem && (
           <Alert className="mt-4" variant={feedbackItem.isCorrect ? 'default' : 'destructive'}>
-            {feedbackItem.isCorrect ? (
-              <CheckCircle2 className="h-4 w-4" />
-            ) : (
-              <XCircle className="h-4 w-4" />
-            )}
-            <AlertTitle>
-              {feedbackItem.isCorrect ? 'Correct!' : 'Incorrect'}
-            </AlertTitle>
+            {feedbackItem.isCorrect ? <CheckCircle2 className="h-4 w-4" /> : <XCircle className="h-4 w-4" />}
+            <AlertTitle>{feedbackItem.isCorrect ? 'Correct!' : 'Incorrect'}</AlertTitle>
             <AlertDescription className="prose prose-sm dark:prose-invert max-w-none space-y-1">
               <p><strong>Your answer:</strong> {feedbackItem.userAnswer}</p>
               <p><strong>Correct answer:</strong> {feedbackItem.correctAnswer}</p>
@@ -225,9 +252,12 @@ export default function PracticeQuestionsPage() {
     );
   };
   
+  const currentPassage = generatedContent?.passages?.[currentPassageIndex];
+  const totalQuestions = generatedContent?.passages?.reduce((sum, p) => sum + p.questions.length, 0) || 0;
+  
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <AppHeader title="Practice Questions">
+      <AppHeader title="Reading Practice">
          {generatedContent && (
           <Button variant="outline" onClick={handleStartOver}>
             <RefreshCcw className="mr-2 size-4" />
@@ -240,30 +270,27 @@ export default function PracticeQuestionsPage() {
             <div className="w-full max-w-2xl pt-10">
               <Card>
                 <CardHeader>
-                  <CardTitle>Generate a Question</CardTitle>
-                  <CardDescription>Select your preferences to generate a custom IELTS practice question.</CardDescription>
+                  <CardTitle>Generate Reading Test</CardTitle>
+                  <CardDescription>Select your preferences to generate a full IELTS reading test.</CardDescription>
                 </CardHeader>
                 <Form {...form}>
                   <form onSubmit={form.handleSubmit(onGenerateSubmit)}>
                     <CardContent className="space-y-4">
-                      <FormField
+                       <FormField
                         control={form.control}
-                        name="questionType"
+                        name="trainingType"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Question Type</FormLabel>
+                            <FormLabel>Test Type</FormLabel>
                             <Select onValueChange={field.onChange} defaultValue={field.value}>
                               <FormControl>
                                 <SelectTrigger>
-                                  <SelectValue placeholder="Select a question type" />
+                                  <SelectValue placeholder="Select a test type" />
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
-                                {questionTypes.map((type) => (
-                                  <SelectItem key={type.value} value={type.value}>
-                                    {type.label}
-                                  </SelectItem>
-                                ))}
+                                <SelectItem value="Academic">Academic</SelectItem>
+                                <SelectItem value="General Training">General Training</SelectItem>
                               </SelectContent>
                             </Select>
                             <FormMessage />
@@ -299,7 +326,7 @@ export default function PracticeQuestionsPage() {
                           <FormItem>
                             <FormLabel>Topic (Optional)</FormLabel>
                             <FormControl>
-                              <Input placeholder="e.g., Environment, Technology" {...field} />
+                              <Input placeholder="e.g., Space Exploration, Ancient Civilizations" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -309,7 +336,7 @@ export default function PracticeQuestionsPage() {
                     <CardFooter>
                       <Button type="submit" disabled={isLoading} className="w-full">
                         {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                        Generate
+                        Generate Test
                       </Button>
                     </CardFooter>
                   </form>
@@ -319,77 +346,89 @@ export default function PracticeQuestionsPage() {
         )}
 
         {isLoading && (
-          <div className="w-full max-w-4xl">
-            <Card>
-              <CardHeader>
-                <Skeleton className="h-8 w-3/4" />
-                <Skeleton className="h-4 w-1/2" />
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <Skeleton className="h-40 w-full" />
-                <Skeleton className="h-8 w-1/4" />
-                <Skeleton className="h-32 w-full" />
-              </CardContent>
-            </Card>
+          <div className="w-full max-w-4xl space-y-4">
+            <p className="text-center text-lg">Generating your test... this may take a moment.</p>
+            <Skeleton className="h-12 w-full" />
+            <Skeleton className="h-64 w-full" />
+            <Skeleton className="h-32 w-full" />
           </div>
         )}
 
-        {generatedContent && !isLoading && (
-            <div className="w-full max-w-4xl">
-              <Card className="flex h-full flex-col">
-                <CardHeader className="flex-row items-start justify-between gap-4">
-                  <div>
-                    <CardTitle className="font-headline text-xl">Generated Question</CardTitle>
-                    <CardDescription>
-                      {questionTypes.find(qt => qt.value === generatedContent.questionType)?.label}
-                      {generatedContent.difficulty && <span className="capitalize"> - {generatedContent.difficulty}</span>}
-                      {generatedContent.topic && ` - ${generatedContent.topic}`}
-                    </CardDescription>
-                  </div>
-                  <Button variant="ghost" size="icon" onClick={handleSaveToggle}>
-                    <Bookmark className={cn('size-5', isSaved(generatedContent.id) && 'fill-primary text-primary')} />
-                    <span className="sr-only">Save question</span>
-                  </Button>
-                </CardHeader>
-                <CardContent className="flex-1 space-y-6">
-                  {generatedContent.passage && (
-                    <div className="space-y-2 rounded-md border bg-muted p-4">
-                       <h3 className="text-lg font-semibold">Reading Passage</h3>
-                      <p className="whitespace-pre-wrap text-sm leading-relaxed">
-                        {generatedContent.passage}
-                      </p>
-                    </div>
-                  )}
-                  {generatedContent.questions && (
-                    <Form {...readingForm}>
-                      <form onSubmit={readingForm.handleSubmit(onAnswersSubmit)}>
-                        <h3 className="mb-4 text-lg font-semibold">Questions</h3>
-                        {generatedContent.questions.map(renderQuestion)}
-                         <div className="mt-6 flex items-center justify-between gap-4">
-                          <Button type="submit" disabled={score !== null}>Submit Answers</Button>
-                          {score !== null && (
-                            <div className='flex items-center gap-4'>
-                              <p className="text-lg font-bold">Your Score: {score}/{generatedContent.questions.length}</p>
-                              <Button onClick={handleGetFeedback} disabled={isFeedbackLoading}>
-                                {isFeedbackLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                Get Feedback
-                              </Button>
+        {generatedContent && !isLoading && currentPassage && (
+            <div className="grid w-full max-w-7xl grid-cols-1 gap-6 lg:grid-cols-2">
+              <div className="lg:col-span-1">
+                 <Card className="sticky top-6">
+                    <CardHeader>
+                       <CardTitle>{currentPassage.passageTitle || `Passage ${currentPassage.passageNumber}`}</CardTitle>
+                       <CardDescription>
+                        {generatedContent.trainingType} - {generatedContent.difficulty && <span className="capitalize">{generatedContent.difficulty}</span>}
+                       </CardDescription>
+                    </CardHeader>
+                    <CardContent className="max-h-[75vh] overflow-y-auto">
+                        <div className="prose prose-sm dark:prose-invert max-w-none whitespace-pre-wrap">
+                            {currentPassage.passageText}
+                        </div>
+                    </CardContent>
+                 </Card>
+              </div>
+
+              <div className="lg:col-span-1">
+                 <Card>
+                   <CardHeader className="flex-row items-center justify-between">
+                     <CardTitle>Questions</CardTitle>
+                     <Button variant="ghost" size="icon" onClick={handleSaveToggle} aria-label="Save test">
+                       <Bookmark className={cn('size-5', isSaved(generatedContent.id) && 'fill-primary text-primary')} />
+                     </Button>
+                   </CardHeader>
+                   <CardContent>
+                      <Form {...readingForm}>
+                        <form onSubmit={readingForm.handleSubmit(onAnswersSubmit)}>
+                          {currentPassage.questions.map(renderQuestion)}
+                          {currentPassageIndex === (generatedContent.passages.length - 1) && (
+                            <div className="mt-6 flex items-center justify-between gap-4">
+                              <Button type="submit" disabled={score !== null}>Submit All Answers</Button>
+                              {score !== null && (
+                                <p className="text-lg font-bold">Total Score: {score}/{totalQuestions}</p>
+                              )}
                             </div>
                           )}
-                        </div>
-                      </form>
-                    </Form>
-                  )}
-                </CardContent>
-                <CardFooter>
-                  <ExamTimer initialTime={timerDuration} />
-                </CardFooter>
-              </Card>
+                        </form>
+                      </Form>
+                   </CardContent>
+                   <CardFooter className="flex flex-col items-stretch gap-4">
+                    {score !== null && (
+                      <Button onClick={handleGetFeedback} disabled={isFeedbackLoading} className="w-full">
+                        {isFeedbackLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        Get Feedback for This Passage
+                      </Button>
+                    )}
+                    <div className="flex items-center justify-between">
+                       <Button 
+                         variant="outline"
+                         onClick={() => setCurrentPassageIndex(p => p - 1)} 
+                         disabled={currentPassageIndex === 0}>
+                           <ArrowLeft className="mr-2 size-4" />
+                           Back
+                       </Button>
+                       <div className="text-center">
+                          <p className="text-sm font-medium">Passage {currentPassageIndex + 1} of {generatedContent.passages.length}</p>
+                          <Progress value={((currentPassageIndex + 1) / generatedContent.passages.length) * 100} className="mt-1 h-2 w-24" />
+                       </div>
+                       <Button 
+                         variant="outline"
+                         onClick={() => setCurrentPassageIndex(p => p + 1)}
+                         disabled={currentPassageIndex === generatedContent.passages.length - 1}>
+                           Next
+                           <ArrowRight className="ml-2 size-4" />
+                       </Button>
+                    </div>
+                     <ExamTimer initialTime={3600} />
+                   </CardFooter>
+                 </Card>
+              </div>
             </div>
         )}
       </main>
     </div>
   );
 }
-
-    

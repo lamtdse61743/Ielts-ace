@@ -26,7 +26,7 @@ export default function SavedPage() {
               <Bookmark className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
               <h2 className="text-xl font-semibold">No Saved Content Yet</h2>
               <p className="text-muted-foreground">
-                Save practice questions and essay feedback to review them here.
+                Save practice tests and essay feedback to review them here.
               </p>
             </div>
           </div>
@@ -35,7 +35,7 @@ export default function SavedPage() {
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="questions">
                 <Notebook className="mr-2 size-4" />
-                Questions ({questions.length})
+                Tests ({questions.length})
               </TabsTrigger>
               <TabsTrigger value="essays">
                 <FileText className="mr-2 size-4" />
@@ -48,13 +48,15 @@ export default function SavedPage() {
                   item.type === 'question' ? (
                     <Card key={item.id} className="flex flex-col">
                       <CardHeader>
-                        <CardTitle className="text-base">{item.questionType.replace('-', ' ')}</CardTitle>
+                        <CardTitle className="text-base">{item.trainingType} Reading Test</CardTitle>
                         <CardDescription>
                           Saved {formatDistanceToNow(new Date(item.createdAt), { addSuffix: true })}
                         </CardDescription>
                       </CardHeader>
                       <CardContent className="flex-1">
-                        <p className="line-clamp-4 text-sm">{item.question}</p>
+                        <p className="line-clamp-4 text-sm">
+                          {item.topic ? `Topic: ${item.topic}` : 'A full 3-passage reading test.'}
+                        </p>
                       </CardContent>
                       <CardFooter>
                         <Button variant="outline" size="sm" onClick={() => removeSavedItem(item.id)}>
