@@ -20,7 +20,7 @@ export type GenerateWritingTopicInput = z.infer<typeof GenerateWritingTopicInput
 
 
 const GenerateWritingTopicOutputSchema = z.object({
-    topic: z.string().describe("The generated essay topic or question. This should be formatted in HTML. For Task 1, this should describe the chart or data. For Task 2, this is the essay prompt. For Task 2, the introductory statement should be bolded."),
+    topic: z.string().describe("The generated essay topic or question. This should be formatted in HTML. For Task 1, this should describe the chart or data. For Task 2, this is the essay prompt. For Task 2, the entire prompt should be bold."),
     instructions: z.string().describe("Specific instructions for the task, formatted in HTML. For example, 'Summarise the information by selecting and reporting the main features, and make comparisons where relevant' for Task 1, or 'Give reasons for your answer and include any relevant examples from your own knowledge or experience.' for Task 2."),
 });
 export type GenerateWritingTopicOutput = z.infer<typeof GenerateWritingTopicOutputSchema>;
@@ -53,9 +53,9 @@ Instructions:
   4. Advantages/Disadvantages Essay: The user must present the benefits and drawbacks of a given idea or development. Example: "In recent years, more people are choosing to work from home. What are the advantages and disadvantages of this trend?"
   5. Double Question Essay (Direct Question): The user will be asked two different questions about the same topic. Example: "Nowadays, many people prefer to shop online rather than in physical stores. Why is this the case? Do you think this is a positive or negative development?"
 
-- For Task 2, format the output 'topic' as HTML. The introductory statement should be in a <p> tag with a <strong> tag inside it. The question itself should be in a separate <p> tag below it.
+- For Task 2, format the output 'topic' as HTML. Both the introductory statement and the question must be bold. The introductory statement should be in a <p> tag with a <strong> tag inside it. The question itself should be in a separate <p> tag below it, also with a <strong> tag inside it.
 - Example HTML format for Task 2 topic:
-<p><strong>The increasing use of Artificial Intelligence (AI) in various aspects of our daily lives, from smart devices to automated services, is a significant technological development.</strong></p><p>What are the advantages and disadvantages of this trend?</p>
+<p><strong>The increasing use of Artificial Intelligence (AI) in various aspects of our daily lives, from smart devices to automated services, is a significant technological development.</strong></p><p><strong>What are the advantages and disadvantages of this trend?</strong></p>
 
 If the user provides a topic, create a prompt related to it. If not, generate a random, high-quality topic appropriate for an IELTS exam.
 

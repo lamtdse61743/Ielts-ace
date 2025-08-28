@@ -46,6 +46,7 @@ function WritingPractice() {
   const [isFeedbackLoading, setIsFeedbackLoading] = useState(false);
   const [generatedTopic, setGeneratedTopic] = useState<GenerateWritingTopicOutput | null>(null);
   const [analyzedEssay, setAnalyzedEssay] = useState<AnalyzedEssay | null>(null);
+  const [wordCount, setWordCount] = useState(0);
 
   const { toast } = useToast();
   const { addSavedItem, removeSavedItem, isSaved } = useSavedContent();
@@ -133,6 +134,7 @@ function WritingPractice() {
     setGeneratedTopic(null);
     setAnalyzedEssay(null);
     essayForm.reset();
+    setWordCount(0);
     topicForm.reset({
         task: 'Task 2',
         topic: '',
@@ -151,6 +153,13 @@ function WritingPractice() {
     }
   };
 
+  const handleEssayChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const text = e.target.value;
+    essayForm.setValue('essay', text); // Manually set value for react-hook-form
+    const words = text.trim().split(/\s+/).filter(Boolean);
+    setWordCount(words.length);
+  };
+  
   return (
     <div className="flex h-full min-h-0 flex-col">
       <AppHeader title={`Writing Practice (${initialTrainingType || '...'})`}>
@@ -242,9 +251,9 @@ function WritingPractice() {
               <CardHeader>
                 <CardTitle>Your Writing Task</CardTitle>
               </CardHeader>
-              <CardContent className="prose dark:prose-invert max-w-none space-y-4">
-                <div dangerouslySetInnerHTML={{ __html: generatedTopic.topic }} />
-                <div className="rounded-md border bg-muted p-4 italic" dangerouslySetInnerHTML={{ __html: generatedTopic.instructions }} />
+              <CardContent className="space-y-4">
+                <div className="prose dark:prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: generatedTopic.topic }} />
+                <div className="prose dark:prose-invert max-w-none rounded-md border bg-muted p-4 italic" dangerouslySetInnerHTML={{ __html: generatedTopic.instructions }} />
               </CardContent>
             </Card>
 
@@ -266,9 +275,13 @@ function WritingPractice() {
                                             rows={15}
                                             placeholder="Start writing your essay here..."
                                             {...field}
+                                            onChange={handleEssayChange}
                                             disabled={!!analyzedEssay}
                                         />
                                     </FormControl>
+                                    <div className="text-right text-sm text-muted-foreground">
+                                        Word Count: {wordCount}
+                                    </div>
                                     <FormMessage />
                                     </FormItem>
                                 )}
