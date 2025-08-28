@@ -124,36 +124,38 @@ export default function PracticeQuestionsPage() {
           name={fieldName}
           render={({ field }) => (
             <FormItem>
-              <FormControl>
                 {question.questionType === 'multiple-choice' && (
-                  <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="space-y-2">
-                    {question.options?.map((option, i) => (
-                      <FormItem key={i} className="flex items-center space-x-3">
-                         <FormControl>
-                            <RadioGroupItem value={option} />
+                  <FormControl>
+                    <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="space-y-2">
+                      {question.options?.map((option, i) => (
+                        <FormItem key={i} className="flex items-center space-x-3">
+                          <FormControl>
+                              <RadioGroupItem value={option} id={`${fieldName}-${i}`}/>
                           </FormControl>
-                        <FormLabel className="font-normal">{option}</FormLabel>
-                      </FormItem>
-                    ))}
-                  </RadioGroup>
+                          <FormLabel htmlFor={`${fieldName}-${i}`} className="font-normal">{option}</FormLabel>
+                        </FormItem>
+                      ))}
+                    </RadioGroup>
+                  </FormControl>
                 )}
                 {question.questionType === 'true-false' && (
-                   <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex space-x-4">
-                      <FormItem className="flex items-center space-x-3">
-                        <FormControl>
-                          <RadioGroupItem value="True" />
-                        </FormControl>
-                        <FormLabel className="font-normal">True</FormLabel>
-                      </FormItem>
-                      <FormItem className="flex items-center space-x-3">
-                         <FormControl>
-                            <RadioGroupItem value="False" />
+                  <FormControl>
+                    <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex space-x-4">
+                        <FormItem className="flex items-center space-x-3">
+                          <FormControl>
+                            <RadioGroupItem value="True" id={`${fieldName}-true`} />
                           </FormControl>
-                        <FormLabel className="font-normal">False</FormLabel>
-                      </FormItem>
-                  </RadioGroup>
+                          <FormLabel htmlFor={`${fieldName}-true`} className="font-normal">True</FormLabel>
+                        </FormItem>
+                        <FormItem className="flex items-center space-x-3">
+                          <FormControl>
+                              <RadioGroupItem value="False" id={`${fieldName}-false`} />
+                          </FormControl>
+                          <FormLabel htmlFor={`${fieldName}-false`} className="font-normal">False</FormLabel>
+                        </FormItem>
+                    </RadioGroup>
+                  </FormControl>
                 )}
-              </FormControl>
               <FormMessage />
             </FormItem>
           )}
