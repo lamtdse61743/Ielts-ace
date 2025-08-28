@@ -34,7 +34,7 @@ const FeedbackItemSchema = z.object({
   explanation: z
     .string()
     .describe(
-      'A detailed explanation of why the answer is correct, referencing parts of the reading passage. If the user was incorrect, explain why their answer is wrong.'
+      "A detailed explanation of why the answer is correct, referencing parts of the reading passage. If the user's answer was incorrect, explain why their answer is wrong and why the correct one is right. If the user's answer is 'Not answered', just provide the explanation for the correct answer."
     ),
 });
 
@@ -58,7 +58,7 @@ const prompt = ai.definePrompt({
 For each question, you will be given the question text, the user's answer, and the correct answer. You must:
 1.  Determine if the user's answer is correct.
 2.  Provide a clear and concise explanation for the correct answer, quoting or referencing specific sentences or phrases from the passage to support your explanation.
-3.  If the user's answer was incorrect, explain the mistake.
+3.  If the user's answer was incorrect, explain the mistake. If the user did not provide an answer, just explain the correct answer.
 
 Reading Passage:
 ---

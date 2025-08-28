@@ -122,42 +122,45 @@ export default function PracticeQuestionsPage() {
     
     setIsFeedbackLoading(true);
     setFeedback(null);
-
-    const currentPassage = generatedContent.passages[currentPassageIndex];
+    const userAnswers = readingForm.getValues();
 
     try {
-      const userAnswers = readingForm.getValues();
-      const questionsAndAnswers = currentPassage.questions.map((q) => ({
-        questionText: `${q.questionNumber}. ${q.questionText}`,
-        userAnswer: userAnswers[`q_${q.questionNumber}`] || 'Not answered',
-        correctAnswer: q.answer,
-      }));
-
-      const feedbackResult = await readingFeedback({
-        passage: currentPassage.passageText,
-        questionsAndAnswers: questionsAndAnswers,
-      });
-
-      setFeedback(prev => {
-        const newFeedback = { ...(prev?.feedback && Object.fromEntries(prev.feedback.map(f => [f.questionText, f]))) };
-        feedbackResult.feedback.forEach(item => {
-          newFeedback[item.questionText] = item;
+      // Create a list of promises for each passage's feedback request
+      const feedbackPromises = generatedContent.passages.map(passage => {
+        const questionsAndAnswers = passage.questions.map((q) => ({
+          questionText: `${q.questionNumber}. ${q.questionText}`,
+          userAnswer: userAnswers[`q_${q.questionNumber}`] || 'Not answered',
+          correctAnswer: q.answer,
+        }));
+        
+        return readingFeedback({
+          passage: passage.passageText,
+          questionsAndAnswers: questionsAndAnswers,
         });
-        return { feedback: Object.values(newFeedback) };
       });
+
+      // Await all promises to resolve
+      const feedbackResults = await Promise.all(feedbackPromises);
+      
+      // Combine feedback from all passages
+      const combinedFeedback: ReadingFeedbackOutput = { feedback: [] };
+      feedbackResults.forEach(result => {
+        combinedFeedback.feedback.push(...result.feedback);
+      });
+
+      setFeedback(combinedFeedback);
 
     } catch (error) {
        console.error('Error getting feedback:', error);
       toast({
         variant: 'destructive',
         title: 'Error',
-        description: 'Failed to get feedback for this passage. Please try again.',
+        description: 'Failed to get feedback. Please try again.',
       });
     } finally {
       setIsFeedbackLoading(false);
     }
   };
-
 
   const handleSaveToggle = () => {
     if (!generatedContent) return;
@@ -355,77 +358,75 @@ export default function PracticeQuestionsPage() {
         )}
 
         {generatedContent && !isLoading && currentPassage && (
-            <div className="grid w-full max-w-7xl grid-cols-1 gap-6 lg:grid-cols-2">
-              <div className="lg:col-span-1">
-                 <Card className="sticky top-6">
-                    <CardHeader>
-                       <CardTitle>{currentPassage.passageTitle || `Passage ${currentPassage.passageNumber}`}</CardTitle>
-                       <CardDescription>
-                        {generatedContent.trainingType} - {generatedContent.difficulty && <span className="capitalize">{generatedContent.difficulty}</span>}
-                       </CardDescription>
-                    </CardHeader>
-                    <CardContent className="max-h-[75vh] overflow-y-auto">
-                        <div className="prose prose-sm dark:prose-invert max-w-none whitespace-pre-wrap">
-                            {currentPassage.passageText}
-                        </div>
-                    </CardContent>
-                 </Card>
-              </div>
-
-              <div className="lg:col-span-1">
-                 <Card>
-                   <CardHeader className="flex-row items-center justify-between">
-                     <CardTitle>Questions</CardTitle>
-                     <Button variant="ghost" size="icon" onClick={handleSaveToggle} aria-label="Save test">
-                       <Bookmark className={cn('size-5', isSaved(generatedContent.id) && 'fill-primary text-primary')} />
-                     </Button>
-                   </CardHeader>
-                   <CardContent>
-                      <Form {...readingForm}>
-                        <form onSubmit={readingForm.handleSubmit(onAnswersSubmit)}>
-                          {currentPassage.questions.map(renderQuestion)}
-                          {currentPassageIndex === (generatedContent.passages.length - 1) && (
-                            <div className="mt-6 flex items-center justify-between gap-4">
-                              <Button type="submit" disabled={score !== null}>Submit All Answers</Button>
-                              {score !== null && (
-                                <p className="text-lg font-bold">Total Score: {score}/{totalQuestions}</p>
-                              )}
-                            </div>
-                          )}
-                        </form>
-                      </Form>
-                   </CardContent>
-                   <CardFooter className="flex flex-col items-stretch gap-4">
-                    {score !== null && (
-                      <Button onClick={handleGetFeedback} disabled={isFeedbackLoading} className="w-full">
-                        {isFeedbackLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                        Get Feedback for This Passage
-                      </Button>
-                    )}
-                    <div className="flex items-center justify-between">
-                       <Button 
-                         variant="outline"
-                         onClick={() => setCurrentPassageIndex(p => p - 1)} 
-                         disabled={currentPassageIndex === 0}>
-                           <ArrowLeft className="mr-2 size-4" />
-                           Back
-                       </Button>
-                       <div className="text-center">
-                          <p className="text-sm font-medium">Passage {currentPassageIndex + 1} of {generatedContent.passages.length}</p>
-                          <Progress value={((currentPassageIndex + 1) / generatedContent.passages.length) * 100} className="mt-1 h-2 w-24" />
-                       </div>
-                       <Button 
-                         variant="outline"
-                         onClick={() => setCurrentPassageIndex(p => p + 1)}
-                         disabled={currentPassageIndex === generatedContent.passages.length - 1}>
-                           Next
-                           <ArrowRight className="ml-2 size-4" />
-                       </Button>
+            <div className="w-full max-w-4xl">
+              <Card>
+                <CardHeader className="flex-row items-start justify-between">
+                  <div>
+                    <CardTitle>{currentPassage.passageTitle || `Passage ${currentPassage.passageNumber}`}</CardTitle>
+                    <CardDescription>
+                      {generatedContent.trainingType} - {generatedContent.difficulty && <span className="capitalize">{generatedContent.difficulty}</span>}
+                    </CardDescription>
+                  </div>
+                  <Button variant="ghost" size="icon" onClick={handleSaveToggle} aria-label="Save test">
+                    <Bookmark className={cn('size-5', isSaved(generatedContent.id) && 'fill-primary text-primary')} />
+                  </Button>
+                </CardHeader>
+                <CardContent>
+                    <div className="prose prose-sm dark:prose-invert max-w-none whitespace-pre-wrap">
+                        {currentPassage.passageText}
                     </div>
-                     <ExamTimer initialTime={3600} />
-                   </CardFooter>
-                 </Card>
-              </div>
+                </CardContent>
+              </Card>
+
+              <Card className="mt-6">
+                <CardHeader>
+                  <CardTitle>Questions</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Form {...readingForm}>
+                    <form onSubmit={readingForm.handleSubmit(onAnswersSubmit)}>
+                      {currentPassage.questions.map(renderQuestion)}
+                      {currentPassageIndex === (generatedContent.passages.length - 1) && (
+                        <div className="mt-6 flex items-center justify-between gap-4">
+                          <Button type="submit" disabled={score !== null}>Submit All Answers</Button>
+                          {score !== null && (
+                            <p className="text-lg font-bold">Total Score: {score}/{totalQuestions}</p>
+                          )}
+                        </div>
+                      )}
+                    </form>
+                  </Form>
+                </CardContent>
+                <CardFooter className="flex flex-col items-stretch gap-4">
+                {score !== null && !feedback && (
+                  <Button onClick={handleGetFeedback} disabled={isFeedbackLoading} className="w-full">
+                    {isFeedbackLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Get Feedback
+                  </Button>
+                )}
+                <div className="flex items-center justify-between">
+                    <Button 
+                      variant="outline"
+                      onClick={() => setCurrentPassageIndex(p => p - 1)} 
+                      disabled={currentPassageIndex === 0}>
+                        <ArrowLeft className="mr-2 size-4" />
+                        Back
+                    </Button>
+                    <div className="text-center">
+                      <p className="text-sm font-medium">Passage {currentPassageIndex + 1} of {generatedContent.passages.length}</p>
+                      <Progress value={((currentPassageIndex + 1) / generatedContent.passages.length) * 100} className="mt-1 h-2 w-24" />
+                    </div>
+                    <Button 
+                      variant="outline"
+                      onClick={() => setCurrentPassageIndex(p => p + 1)}
+                      disabled={currentPassageIndex === generatedContent.passages.length - 1}>
+                        Next
+                        <ArrowRight className="ml-2 size-4" />
+                    </Button>
+                </div>
+                  <ExamTimer initialTime={3600} />
+                </CardFooter>
+              </Card>
             </div>
         )}
       </main>
