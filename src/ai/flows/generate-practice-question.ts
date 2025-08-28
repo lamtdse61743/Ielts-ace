@@ -31,6 +31,7 @@ export type GeneratePracticeQuestionInput = z.infer<
 >;
 
 const GeneratePracticeQuestionOutputSchema = z.object({
+  passage: z.string().optional().describe('The reading passage for the question. Only for reading comprehension.'),
   question: z.string().describe('The generated IELTS practice question.'),
   answer: z.string().describe('An example answer to the generated question'),
 });
@@ -49,6 +50,8 @@ const prompt = ai.definePrompt({
   input: {schema: GeneratePracticeQuestionInputSchema},
   output: {schema: GeneratePracticeQuestionOutputSchema},
   prompt: `You are an IELTS exam preparation assistant. Generate an IELTS practice question based on the specified question type, topic and difficulty.
+
+If the question type is 'reading-comprehension', you MUST provide a reading passage for the user to read.
 
 Question Type: {{{questionType}}}
 Topic: {{{topic}}}

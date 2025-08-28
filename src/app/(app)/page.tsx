@@ -20,6 +20,7 @@ import type { GeneratedQuestion } from '@/lib/types';
 import { useSavedContent } from '@/hooks/use-saved-content';
 import { Bookmark, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 const FormSchema = z.object({
   questionType: z.string().min(1, 'Please select a question type.'),
@@ -144,6 +145,7 @@ export default function PracticeQuestionsPage() {
                             <SelectContent>
                               <SelectItem value="easy">Easy</SelectItem>
                               <SelectItem value="medium">Medium</SelectItem>
+      
                               <SelectItem value="hard">Hard</SelectItem>
                             </SelectContent>
                           </Select>
@@ -207,6 +209,13 @@ export default function PracticeQuestionsPage() {
                   </Button>
                 </CardHeader>
                 <CardContent className="flex-1 space-y-4">
+                  {generatedContent.passage && (
+                    <ScrollArea className="h-48 rounded-md border bg-muted p-4">
+                      <p className="whitespace-pre-wrap text-sm leading-relaxed">
+                        {generatedContent.passage}
+                      </p>
+                    </ScrollArea>
+                  )}
                   <p className="whitespace-pre-wrap rounded-md border bg-muted p-4 text-sm leading-relaxed">
                     {generatedContent.question}
                   </p>

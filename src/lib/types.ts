@@ -8,6 +8,7 @@ export type GeneratedQuestion = GeneratePracticeQuestionOutput & {
   topic?: string;
   difficulty?: string;
   createdAt: string;
+  passage?: string;
 };
 
 export type AnalyzedEssay = {

@@ -30,43 +30,46 @@ export function AppSidebar() {
       <SidebarContent>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton
-              href="/"
-              asChild
-              isActive={pathname === '/'}
-              tooltip="Practice Questions"
-            >
-              <Link href="/">
-                <Notebook />
-                <span>Practice Questions</span>
-              </Link>
-            </SidebarMenuButton>
+            <Link href="/" legacyBehavior passHref>
+              <SidebarMenuButton
+                asChild
+                isActive={pathname === '/'}
+                tooltip="Practice Questions"
+              >
+                <a>
+                  <Notebook />
+                  <span>Practice Questions</span>
+                </a>
+              </SidebarMenuButton>
+            </Link>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton
-              href="/essay-feedback"
-              asChild
-              isActive={pathname === '/essay-feedback'}
-              tooltip="Essay Feedback"
-            >
-              <Link href="/essay-feedback">
-                <PenSquare />
-                <span>Essay Feedback</span>
-              </Link>
-            </SidebarMenuButton>
+            <Link href="/essay-feedback" legacyBehavior passHref>
+              <SidebarMenuButton
+                asChild
+                isActive={pathname === '/essay-feedback'}
+                tooltip="Essay Feedback"
+              >
+                <a>
+                  <PenSquare />
+                  <span>Essay Feedback</span>
+                </a>
+              </SidebarMenuButton>
+            </Link>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton
-              href="/saved"
-              asChild
-              isActive={pathname === '/saved'}
-              tooltip="Saved Content"
-            >
-              <Link href="/saved">
-                <Bookmark />
-                <span>Saved Content</span>
-              </Link>
-            </SidebarMenuButton>
+            <Link href="/saved" legacyBehavior passHref>
+              <SidebarMenuButton
+                asChild
+                isActive={pathname === '/saved'}
+                tooltip="Saved Content"
+              >
+                <a>
+                  <Bookmark />
+                  <span>Saved Content</span>
+                </a>
+              </SidebarMenuButton>
+            </Link>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarContent>
