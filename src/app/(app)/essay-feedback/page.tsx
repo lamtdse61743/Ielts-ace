@@ -149,8 +149,8 @@ export default function EssayFeedbackPage() {
                   </Button>
                 </CardFooter>
               </form>
-            </Card>
-          </div>
+            </Form>
+          </Card>
 
           <div className="lg:col-span-2">
             {isLoading && (
