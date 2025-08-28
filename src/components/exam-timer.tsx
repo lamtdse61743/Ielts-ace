@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
@@ -13,7 +14,7 @@ interface ExamTimerProps {
 
 export function ExamTimer({ initialTime, className }: ExamTimerProps) {
   const [timeLeft, setTimeLeft] = useState(initialTime);
-  const [isActive, setIsActive] = useState(false);
+  const [isActive, setIsActive] = useState(true);
 
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null;

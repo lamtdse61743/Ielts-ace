@@ -83,9 +83,11 @@ type EssayFormValues = z.infer<typeof EssayFormSchema>;
 function WritingPractice() {
   const searchParams = useSearchParams();
   const initialTrainingType =
-    (searchParams.get('type') as 'Academic' | 'General Training' | null) || 'Academic';
+    (searchParams.get('type') as 'Academic' | 'General Training' | null) ||
+    'Academic';
 
-  const [trainingType, setTrainingType] = useState(initialTrainingType);
+  const [trainingType, setTrainingType] =
+    useState<"Academic" | "General Training">(initialTrainingType);
   const [isLoading, setIsLoading] = useState(false);
   const [isFeedbackLoading, setIsFeedbackLoading] = useState(false);
   const [generatedTopic, setGeneratedTopic] =
@@ -94,6 +96,8 @@ function WritingPractice() {
     null
   );
   const [wordCount, setWordCount] = useState(0);
+  const [timerKey, setTimerKey] = useState(0);
+
 
   const { toast } = useToast();
   const { addSavedItem, removeSavedItem, isSaved } = useSavedContent();
@@ -108,8 +112,10 @@ function WritingPractice() {
   });
 
   useEffect(() => {
-    setTrainingType(initialTrainingType);
-    topicForm.setValue('trainingType', initialTrainingType);
+    if (initialTrainingType) {
+      setTrainingType(initialTrainingType);
+      topicForm.setValue('trainingType', initialTrainingType);
+    }
   }, [initialTrainingType, topicForm]);
 
   const essayForm = useForm<EssayFormValues>({
@@ -144,6 +150,7 @@ function WritingPractice() {
         throw new Error('The generated topic is invalid or empty.');
       }
       setGeneratedTopic(result);
+      setTimerKey(prevKey => prevKey + 1); // Reset timer
     } catch (error) {
       handleApiError(error, 'Failed to generate a topic. Please try again.');
     } finally {
@@ -232,7 +239,10 @@ function WritingPractice() {
           name: 'Lexical Resource',
           band: analyzedEssay.feedback.lexicalResource.band,
         },
-        { name: 'Grammar', band: analyzedEssay.feedback.grammaticalRangeAndAccuracy.band },
+        {
+          name: 'Grammar',
+          band: analyzedEssay.feedback.grammaticalRangeAndAccuracy.band,
+        },
       ]
     : [];
 
@@ -411,6 +421,7 @@ function WritingPractice() {
                       </Button>
                     )}
                     <ExamTimer
+                      key={timerKey}
                       initialTime={
                         topicForm.getValues('task') === 'Task 1' ? 1200 : 2400
                       }
@@ -467,8 +478,17 @@ function WritingPractice() {
                             borderColor: 'hsl(var(--border))',
                           }}
                         />
-                        <Bar dataKey="band" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]}>
-                           <LabelList dataKey="band" position="top" className="fill-foreground" fontSize={12} />
+                        <Bar
+                          dataKey="band"
+                          fill="hsl(var(--primary))"
+                          radius={[4, 4, 0, 0]}
+                        >
+                          <LabelList
+                            dataKey="band"
+                            position="top"
+                            className="fill-foreground"
+                            fontSize={12}
+                          />
                         </Bar>
                       </BarChart>
                     </ResponsiveContainer>
@@ -479,11 +499,11 @@ function WritingPractice() {
                     defaultValue={['improvements']}
                     className="w-full"
                   >
-                     <AccordionItem value="improvements">
+                    <AccordionItem value="improvements">
                       <AccordionTrigger className="text-lg">
                         <div className="flex items-center gap-2">
-                          <CheckCircle className="size-5 text-primary" />{' '}
-                          Key Improvements
+                          <CheckCircle className="size-5 text-primary" /> Key
+                          Improvements
                         </div>
                       </AccordionTrigger>
                       <AccordionContent>
@@ -497,29 +517,14 @@ function WritingPractice() {
                     </AccordionItem>
                     <AccordionItem value="taskResponse">
                       <AccordionTrigger className="text-lg">
-                        <div className="flex items-center justify-between w-full pr-2">
-                           <div className="flex items-center gap-2">
-                                <MessageSquareQuote className="size-5 text-primary" /> Task Response
-                            </div>
-                           <div className="text-base font-semibold rounded-md bg-muted px-2 py-1">Band: {analyzedEssay.feedback.taskResponse.band}</div>
-                        </div>
-                      </AccordionTrigger>
-                      <AccordionContent>
-                         <div
-                          className="prose dark:prose-invert max-w-none"
-                          dangerouslySetInnerHTML={{
-                            __html: analyzedEssay.feedback.taskResponse.feedback,
-                          }}
-                        />
-                      </AccordionContent>
-                    </AccordionItem>
-                    <AccordionItem value="coherence">
-                      <AccordionTrigger className="text-lg">
-                         <div className="flex items-center justify-between w-full pr-2">
-                           <div className="flex items-center gap-2">
-                                <Waypoints className="size-5 text-primary" /> Coherence & Cohesion
-                            </div>
-                           <div className="text-base font-semibold rounded-md bg-muted px-2 py-1">Band: {analyzedEssay.feedback.coherenceAndCohesion.band}</div>
+                        <div className="flex w-full items-center justify-between pr-2">
+                          <div className="flex items-center gap-2">
+                            <MessageSquareQuote className="size-5 text-primary" />{' '}
+                            Task Response
+                          </div>
+                          <div className="rounded-md bg-muted px-2 py-1 text-base font-semibold">
+                            Band: {analyzedEssay.feedback.taskResponse.band}
+                          </div>
                         </div>
                       </AccordionTrigger>
                       <AccordionContent>
@@ -527,22 +532,49 @@ function WritingPractice() {
                           className="prose dark:prose-invert max-w-none"
                           dangerouslySetInnerHTML={{
                             __html:
-                              analyzedEssay.feedback.coherenceAndCohesion.feedback,
+                              analyzedEssay.feedback.taskResponse.feedback,
+                          }}
+                        />
+                      </AccordionContent>
+                    </AccordionItem>
+                    <AccordionItem value="coherence">
+                      <AccordionTrigger className="text-lg">
+                        <div className="flex w-full items-center justify-between pr-2">
+                          <div className="flex items-center gap-2">
+                            <Waypoints className="size-5 text-primary" />{' '}
+                            Coherence & Cohesion
+                          </div>
+                          <div className="rounded-md bg-muted px-2 py-1 text-base font-semibold">
+                            Band:{' '}
+                            {analyzedEssay.feedback.coherenceAndCohesion.band}
+                          </div>
+                        </div>
+                      </AccordionTrigger>
+                      <AccordionContent>
+                        <div
+                          className="prose dark:prose-invert max-w-none"
+                          dangerouslySetInnerHTML={{
+                            __html:
+                              analyzedEssay.feedback.coherenceAndCohesion
+                                .feedback,
                           }}
                         />
                       </AccordionContent>
                     </AccordionItem>
                     <AccordionItem value="lexical">
                       <AccordionTrigger className="text-lg">
-                        <div className="flex items-center justify-between w-full pr-2">
-                           <div className="flex items-center gap-2">
-                                <FileText className="size-5 text-primary" /> Lexical Resource
-                            </div>
-                           <div className="text-base font-semibold rounded-md bg-muted px-2 py-1">Band: {analyzedEssay.feedback.lexicalResource.band}</div>
+                        <div className="flex w-full items-center justify-between pr-2">
+                          <div className="flex items-center gap-2">
+                            <FileText className="size-5 text-primary" />{' '}
+                            Lexical Resource
+                          </div>
+                          <div className="rounded-md bg-muted px-2 py-1 text-base font-semibold">
+                            Band: {analyzedEssay.feedback.lexicalResource.band}
+                          </div>
                         </div>
                       </AccordionTrigger>
                       <AccordionContent>
-                         <div
+                        <div
                           className="prose dark:prose-invert max-w-none"
                           dangerouslySetInnerHTML={{
                             __html:
@@ -553,24 +585,32 @@ function WritingPractice() {
                     </AccordionItem>
                     <AccordionItem value="grammar">
                       <AccordionTrigger className="text-lg">
-                        <div className="flex items-center justify-between w-full pr-2">
-                           <div className="flex items-center gap-2">
-                                <SpellCheck className="size-5 text-primary" /> Grammatical Range & Accuracy
-                            </div>
-                           <div className="text-base font-semibold rounded-md bg-muted px-2 py-1">Band: {analyzedEssay.feedback.grammaticalRangeAndAccuracy.band}</div>
+                        <div className="flex w-full items-center justify-between pr-2">
+                          <div className="flex items-center gap-2">
+                            <SpellCheck className="size-5 text-primary" />{' '}
+                            Grammatical Range & Accuracy
+                          </div>
+                          <div className="rounded-md bg-muted px-2 py-1 text-base font-semibold">
+                            Band:{' '}
+                            {
+                              analyzedEssay.feedback
+                                .grammaticalRangeAndAccuracy.band
+                            }
+                          </div>
                         </div>
                       </AccordionTrigger>
-                       <AccordionContent>
+                      <AccordionContent>
                         <div
                           className="prose dark:prose-invert max-w-none"
                           dangerouslySetInnerHTML={{
                             __html:
-                              analyzedEssay.feedback.grammaticalRangeAndAccuracy.feedback,
+                              analyzedEssay.feedback
+                                .grammaticalRangeAndAccuracy.feedback,
                           }}
                         />
                       </AccordionContent>
                     </AccordionItem>
-                     <AccordionItem value="errors">
+                    <AccordionItem value="errors">
                       <AccordionTrigger className="text-lg">
                         <div className="flex items-center gap-2">
                           <GraduationCap className="size-5 text-primary" />{' '}
