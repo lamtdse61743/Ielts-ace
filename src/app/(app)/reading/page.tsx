@@ -115,7 +115,6 @@ function ReadingPractice() {
     setGeneratedContent(null);
     setScore(null);
     setFeedback(null);
-    form.reset();
     readingForm.reset();
     setCurrentPassageIndex(0);
   }
@@ -290,7 +289,7 @@ function ReadingPractice() {
   
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <AppHeader title="Reading Practice">
+      <AppHeader title={`Reading Practice (${initialTrainingType || '...'})`}>
          {generatedContent && (
           <Button variant="outline" onClick={handleStartOver}>
             <RefreshCcw className="mr-2 size-4" />
@@ -309,27 +308,6 @@ function ReadingPractice() {
                 <Form {...form}>
                   <form onSubmit={form.handleSubmit(onGenerateSubmit)}>
                     <CardContent className="space-y-4">
-                       <FormField
-                        control={form.control}
-                        name="trainingType"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Test Type</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select a test type" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                <SelectItem value="Academic">Academic</SelectItem>
-                                <SelectItem value="General Training">General Training</SelectItem>
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
                       <FormField
                         control={form.control}
                         name="difficulty"
