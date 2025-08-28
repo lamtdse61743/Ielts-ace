@@ -12,7 +12,6 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { AppHeader } from '@/components/app-header';
@@ -21,8 +20,8 @@ import type { GeneratedQuestion, ReadingQuestion } from '@/lib/types';
 import { useSavedContent } from '@/hooks/use-saved-content';
 import { Bookmark, Loader2, CheckCircle2, XCircle, RefreshCcw } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 const FormSchema = z.object({
   questionType: z.string().min(1, 'Please select a question type.'),
@@ -162,8 +161,10 @@ export default function PracticeQuestionsPage() {
 
   const renderQuestion = (question: ReadingQuestion, index: number) => {
     const fieldName = `q_${index}`;
+    const feedbackItem = feedback?.feedback[index];
+
     return (
-      <div key={index} className="mb-6 rounded-md border p-4">
+      <div key={index} className="mb-4 rounded-md border p-4">
         <p className="mb-2 font-semibold">{index + 1}. {question.questionText}</p>
         <FormField
           control={readingForm.control}
@@ -176,7 +177,7 @@ export default function PracticeQuestionsPage() {
                       {question.options?.map((option, i) => (
                         <FormItem key={i} className="flex items-center space-x-3">
                           <FormControl>
-                              <RadioGroupItem value={option} id={`${fieldName}-${i}`}/>
+                              <RadioGroupItem value={option} id={`${fieldName}-${i}`} disabled={score !== null}/>
                           </FormControl>
                           <FormLabel htmlFor={`${fieldName}-${i}`} className="font-normal">{option}</FormLabel>
                         </FormItem>
@@ -186,13 +187,13 @@ export default function PracticeQuestionsPage() {
                     <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex space-x-4">
                         <FormItem className="flex items-center space-x-3">
                           <FormControl>
-                            <RadioGroupItem value="True" id={`${fieldName}-true`} />
+                            <RadioGroupItem value="True" id={`${fieldName}-true`} disabled={score !== null}/>
                           </FormControl>
                           <FormLabel htmlFor={`${fieldName}-true`} className="font-normal">True</FormLabel>
                         </FormItem>
                         <FormItem className="flex items-center space-x-3">
                           <FormControl>
-                              <RadioGroupItem value="False" id={`${fieldName}-false`} />
+                              <RadioGroupItem value="False" id={`${fieldName}-false`} disabled={score !== null}/>
                           </FormControl>
                           <FormLabel htmlFor={`${fieldName}-false`} className="font-normal">False</FormLabel>
                         </FormItem>
@@ -203,6 +204,23 @@ export default function PracticeQuestionsPage() {
             </FormItem>
           )}
         />
+        {feedbackItem && (
+          <Alert className="mt-4" variant={feedbackItem.isCorrect ? 'default' : 'destructive'}>
+            {feedbackItem.isCorrect ? (
+              <CheckCircle2 className="h-4 w-4" />
+            ) : (
+              <XCircle className="h-4 w-4" />
+            )}
+            <AlertTitle>
+              {feedbackItem.isCorrect ? 'Correct!' : 'Incorrect'}
+            </AlertTitle>
+            <AlertDescription className="prose prose-sm dark:prose-invert max-w-none space-y-1">
+              <p><strong>Your answer:</strong> {feedbackItem.userAnswer}</p>
+              <p><strong>Correct answer:</strong> {feedbackItem.correctAnswer}</p>
+              <p><strong>Explanation:</strong> {feedbackItem.explanation}</p>
+            </AlertDescription>
+          </Alert>
+        )}
       </div>
     );
   };
@@ -217,9 +235,9 @@ export default function PracticeQuestionsPage() {
           </Button>
         )}
       </AppHeader>
-      <main className="flex flex-1 items-center justify-center overflow-auto p-4 md:p-6">
+      <main className="flex flex-1 items-start justify-center overflow-auto p-4 md:p-6">
         {!generatedContent && !isLoading && (
-            <div className="w-full max-w-2xl">
+            <div className="w-full max-w-2xl pt-10">
               <Card>
                 <CardHeader>
                   <CardTitle>Generate a Question</CardTitle>
@@ -308,7 +326,7 @@ export default function PracticeQuestionsPage() {
                 <Skeleton className="h-4 w-1/2" />
               </CardHeader>
               <CardContent className="space-y-4">
-                <Skeleton className="h-20 w-full" />
+                <Skeleton className="h-40 w-full" />
                 <Skeleton className="h-8 w-1/4" />
                 <Skeleton className="h-32 w-full" />
               </CardContent>
@@ -333,14 +351,14 @@ export default function PracticeQuestionsPage() {
                     <span className="sr-only">Save question</span>
                   </Button>
                 </CardHeader>
-                <CardContent className="flex-1 space-y-4">
+                <CardContent className="flex-1 space-y-6">
                   {generatedContent.passage && (
-                    <ScrollArea className="h-48 rounded-md border bg-muted p-4">
-                       <h3 className="mb-2 text-lg font-semibold">Reading Passage</h3>
+                    <div className="space-y-2 rounded-md border bg-muted p-4">
+                       <h3 className="text-lg font-semibold">Reading Passage</h3>
                       <p className="whitespace-pre-wrap text-sm leading-relaxed">
                         {generatedContent.passage}
                       </p>
-                    </ScrollArea>
+                    </div>
                   )}
                   {generatedContent.questions && (
                     <Form {...readingForm}>
@@ -362,45 +380,6 @@ export default function PracticeQuestionsPage() {
                       </form>
                     </Form>
                   )}
-
-                  {feedback && (
-                     <div className="mt-6">
-                      <h3 className="mb-4 text-lg font-semibold">Detailed Feedback</h3>
-                       <Accordion type="multiple" className="w-full">
-                        {feedback.feedback.map((item, index) => (
-                           <AccordionItem key={index} value={`item-${index}`}>
-                             <AccordionTrigger>
-                              <div className='flex items-center gap-2'>
-                                {item.isCorrect ? <CheckCircle2 className="size-5 text-green-500"/> : <XCircle className="size-5 text-destructive" />}
-                                <span className='text-left'>Question {index + 1}</span>
-                              </div>
-                             </AccordionTrigger>
-                             <AccordionContent className="prose prose-sm dark:prose-invert max-w-none space-y-2 p-2 text-sm">
-                               <p><strong>Your answer:</strong> {item.userAnswer}</p>
-                               <p><strong>Correct answer:</strong> {item.correctAnswer}</p>
-                               <p><strong>Explanation:</strong> {item.explanation}</p>
-                             </AccordionContent>
-                           </AccordionItem>
-                        ))}
-                       </Accordion>
-                     </div>
-                  )}
-
-                  {generatedContent.question && !generatedContent.questions && (
-                    <>
-                      <p className="whitespace-pre-wrap rounded-md border bg-muted p-4 text-sm leading-relaxed">
-                        {generatedContent.question}
-                      </p>
-                      <Accordion type="single" collapsible>
-                        <AccordionItem value="item-1">
-                          <AccordionTrigger>View Example Answer</AccordionTrigger>
-                          <AccordionContent className="whitespace-pre-wrap text-sm leading-relaxed">
-                            {generatedContent.answer}
-                          </AccordionContent>
-                        </AccordionItem>
-                      </Accordion>
-                    </>
-                  )}
                 </CardContent>
                 <CardFooter>
                   <ExamTimer initialTime={timerDuration} />
@@ -412,3 +391,5 @@ export default function PracticeQuestionsPage() {
     </div>
   );
 }
+
+    
