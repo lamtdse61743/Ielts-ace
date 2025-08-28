@@ -46,6 +46,13 @@ Instructions:
 - For Task 1 (Academic): Generate a description of a chart, graph, table, or diagram. The topic should be suitable for data visualization (e.g., population trends, economic data, process diagrams). The instruction should be "Summarise the information by selecting and reporting the main features, and make comparisons where relevant."
 - For Task 1 (General Training): Generate a situation for a letter. The topic should be a common, everyday scenario requiring a formal or semi-formal letter (e.g., complaining about a product, requesting information, applying for a part-time job). The instruction should be "Write at least 150 words. You do NOT need to write any addresses."
 - For Task 2 (Academic & General Training): Generate an essay question that requires a discursive response. The topic should be of general interest and allow for discussion of different viewpoints. The instruction should be "Write at least 250 words. Give reasons for your answer and include any relevant examples from your own knowledge or experience."
+- For Task 2, you must randomly pick one of the following essay types to generate the question:
+  1. Opinion Essay (Agree/Disagree): The user must state whether they agree, disagree, or partially agree with a statement. Example: "Some people think that university education should be free for everyone. To what extent do you agree or disagree?"
+  2. Discussion Essay (Discuss Both Views): The user must discuss two perspectives and give their own opinion. Example: "Some people believe that technology has made our lives more complicated, while others think it has made life easier. Discuss both views and give your own opinion."
+  3. Problem/Solution Essay: The user must identify problems and suggest solutions. Example: "Many cities around the world are facing traffic congestion. What are the main problems, and what solutions can be suggested to deal with this issue?"
+  4. Advantages/Disadvantages Essay: The user must present the benefits and drawbacks of a given idea or development. Example: "In recent years, more people are choosing to work from home. What are the advantages and disadvantages of this trend?"
+  5. Double Question Essay (Direct Question): The user will be asked two different questions about the same topic. Example: "Nowadays, many people prefer to shop online rather than in physical stores. Why is this the case? Do you think this is a positive or negative development?"
+
 
 If the user provides a topic, create a prompt related to it. If not, generate a random, high-quality topic appropriate for an IELTS exam.
 
