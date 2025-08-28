@@ -17,7 +17,7 @@ import { AppHeader } from '@/components/app-header';
 import { ExamTimer } from '@/components/exam-timer';
 import type { GeneratedQuestion, SavedContent } from '@/lib/types';
 import { useSavedContent } from '@/hooks/use-saved-content';
-import { Bookmark, Loader2, CheckCircle2, XCircle, RefreshCcw, ArrowLeft, ArrowRight, Cat } from 'lucide-react';
+import { Bookmark, Loader2, CheckCircle2, XCircle, RefreshCcw, ArrowLeft, ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -124,7 +124,6 @@ export default function PracticeQuestionsPage() {
     const userAnswers = readingForm.getValues();
 
     try {
-      // Create a list of promises for each passage's feedback request
       const feedbackPromises = generatedContent.passages.map(passage => {
         const questionsAndAnswers = passage.questions.map((q) => ({
           questionText: `${q.questionNumber}. ${q.questionText}`,
@@ -138,10 +137,8 @@ export default function PracticeQuestionsPage() {
         });
       });
 
-      // Await all promises to resolve
       const feedbackResults = await Promise.all(feedbackPromises);
       
-      // Combine feedback from all passages
       const combinedFeedback: ReadingFeedbackOutput = { feedback: [] };
       feedbackResults.forEach(result => {
         combinedFeedback.feedback.push(...result.feedback);
@@ -183,7 +180,7 @@ export default function PracticeQuestionsPage() {
         case 'matching-features':
         case 'matching-sentence-endings':
           return (
-            <RadioGroup onValueChange={readingForm.setValue.bind(readingForm, fieldName)} className="space-y-2">
+             <RadioGroup onValueChange={(value) => readingForm.setValue(fieldName, value)} className="space-y-2">
               {question.options?.map((option: string, i: number) => (
                 <FormItem key={i} className="flex items-center space-x-3">
                   <FormControl>
@@ -200,7 +197,7 @@ export default function PracticeQuestionsPage() {
             ? ['True', 'False', 'Not Given'] 
             : ['Yes', 'No', 'Not Given'];
           return (
-            <RadioGroup onValueChange={readingForm.setValue.bind(readingForm, fieldName)} className="flex space-x-4">
+             <RadioGroup onValueChange={(value) => readingForm.setValue(fieldName, value)} className="flex space-x-4">
               {options.map((opt, i) => (
                 <FormItem key={i} className="flex items-center space-x-3">
                   <FormControl>
@@ -350,37 +347,33 @@ export default function PracticeQuestionsPage() {
         {isLoading && (
           <div className="flex w-full flex-col items-center justify-center space-y-4">
             <p className="text-lg font-semibold">Generating your test...</p>
-            <div className="running-cat">
-                <Cat className="h-12 w-12 text-primary" />
-                <div className="running-cat-shadow"></div>
+            <div className="running-cat-container">
+              <div className="running-cat"></div>
             </div>
           </div>
         )}
 
         {generatedContent && !isLoading && currentPassage && (
-            <div className="grid w-full max-w-4xl grid-cols-1 gap-6">
-               <div>
-                  <Card>
-                    <CardHeader className="flex-row items-start justify-between">
-                      <div>
-                        <CardTitle>{currentPassage.passageTitle || `Passage ${currentPassage.passageNumber}`}</CardTitle>
-                        <CardDescription>
-                          {generatedContent.trainingType} - {generatedContent.difficulty && <span className="capitalize">{generatedContent.difficulty}</span>}
-                        </CardDescription>
+            <div className="w-full max-w-4xl space-y-6">
+                <Card>
+                  <CardHeader className="flex-row items-start justify-between">
+                    <div>
+                      <CardTitle>{currentPassage.passageTitle || `Passage ${currentPassage.passageNumber}`}</CardTitle>
+                      <CardDescription>
+                        {generatedContent.trainingType} - {generatedContent.difficulty && <span className="capitalize">{generatedContent.difficulty}</span>}
+                      </CardDescription>
+                    </div>
+                    <Button variant="ghost" size="icon" onClick={handleSaveToggle} aria-label="Save test">
+                      <Bookmark className={cn('size-5', isSaved(generatedContent.id) && 'fill-primary text-primary')} />
+                    </Button>
+                  </CardHeader>
+                  <CardContent>
+                      <div className="prose prose-sm dark:prose-invert max-w-none whitespace-pre-wrap">
+                          {currentPassage.passageText}
                       </div>
-                      <Button variant="ghost" size="icon" onClick={handleSaveToggle} aria-label="Save test">
-                        <Bookmark className={cn('size-5', isSaved(generatedContent.id) && 'fill-primary text-primary')} />
-                      </Button>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="prose prose-sm dark:prose-invert max-w-none whitespace-pre-wrap">
-                            {currentPassage.passageText}
-                        </div>
-                    </CardContent>
-                  </Card>
-               </div>
+                  </CardContent>
+                </Card>
 
-              <div>
                 <Card>
                   <CardHeader>
                     <CardTitle>Questions</CardTitle>
@@ -430,7 +423,6 @@ export default function PracticeQuestionsPage() {
                     <ExamTimer initialTime={3600} />
                   </CardFooter>
                 </Card>
-              </div>
             </div>
         )}
       </main>
