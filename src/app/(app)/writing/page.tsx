@@ -569,13 +569,13 @@ function WritingPractice() {
                           Specific Errors
                         </div>
                       </AccordionTrigger>
-                      <AccordionContent
-                        className="prose dark:prose-invert max-w-none"
-                      >
-                       <h4>Spelling Errors</h4>
-                       <div dangerouslySetInnerHTML={{ __html: analyzedEssay.feedback.spellingErrors}} />
-                       <h4 className="mt-4">Grammar Errors</h4>
-                       <div dangerouslySetInnerHTML={{ __html: analyzedEssay.feedback.grammaticalErrors}} />
+                      <AccordionContent>
+                        <div
+                          className="prose dark:prose-invert max-w-none"
+                          dangerouslySetInnerHTML={{
+                            __html: `<h4>Spelling Errors</h4>${analyzedEssay.feedback.spellingErrors}<h4 class="mt-4">Grammar Errors</h4>${analyzedEssay.feedback.grammaticalErrors}`,
+                          }}
+                        />
                       </AccordionContent>
                     </AccordionItem>
                   </Accordion>
