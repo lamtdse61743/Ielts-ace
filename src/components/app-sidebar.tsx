@@ -1,5 +1,7 @@
+
 'use client';
 
+import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   Sidebar,
@@ -34,8 +36,10 @@ export function AppSidebar() {
               isActive={pathname === '/'}
               tooltip="Practice Questions"
             >
-              <Notebook />
-              <span>Practice Questions</span>
+              <Link href="/">
+                <Notebook />
+                <span>Practice Questions</span>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
@@ -45,8 +49,10 @@ export function AppSidebar() {
               isActive={pathname === '/essay-feedback'}
               tooltip="Essay Feedback"
             >
-              <PenSquare />
-              <span>Essay Feedback</span>
+              <Link href="/essay-feedback">
+                <PenSquare />
+                <span>Essay Feedback</span>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
@@ -56,8 +62,10 @@ export function AppSidebar() {
               isActive={pathname === '/saved'}
               tooltip="Saved Content"
             >
-              <Bookmark />
-              <span>Saved Content</span>
+              <Link href="/saved">
+                <Bookmark />
+                <span>Saved Content</span>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
