@@ -19,7 +19,7 @@ import { AppHeader } from '@/components/app-header';
 import { ExamTimer } from '@/components/exam-timer';
 import type { GeneratedQuestion, ReadingQuestion } from '@/lib/types';
 import { useSavedContent } from '@/hooks/use-saved-content';
-import { Bookmark, Loader2, CheckCircle2, XCircle } from 'lucide-react';
+import { Bookmark, Loader2, CheckCircle2, XCircle, RefreshCcw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -90,6 +90,14 @@ export default function PracticeQuestionsPage() {
       setIsLoading(false);
     }
   };
+  
+  const handleStartOver = () => {
+    setGeneratedContent(null);
+    setScore(null);
+    setFeedback(null);
+    form.reset();
+    readingForm.reset();
+  }
 
   const onAnswersSubmit: SubmitHandler<FieldValues> = (data) => {
     if (!generatedContent || !generatedContent.questions) return;
@@ -201,106 +209,115 @@ export default function PracticeQuestionsPage() {
   
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <AppHeader title="Practice Questions" />
-      <main className="flex-1 overflow-auto p-4 md:p-6">
-        <div className="grid gap-6 lg:grid-cols-3">
-          <div className="lg:col-span-1">
-            <Card>
-              <CardHeader>
-                <CardTitle>Generate a Question</CardTitle>
-                <CardDescription>Select your preferences to generate a custom IELTS practice question.</CardDescription>
-              </CardHeader>
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onGenerateSubmit)}>
-                  <CardContent className="space-y-4">
-                    <FormField
-                      control={form.control}
-                      name="questionType"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Question Type</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select a question type" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {questionTypes.map((type) => (
-                                <SelectItem key={type.value} value={type.value}>
-                                  {type.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="difficulty"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Difficulty</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select a difficulty level" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="easy">Easy</SelectItem>
-                              <SelectItem value="medium">Medium</SelectItem>
-      
-                              <SelectItem value="hard">Hard</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="topic"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Topic (Optional)</FormLabel>
-                          <FormControl>
-                            <Input placeholder="e.g., Environment, Technology" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </CardContent>
-                  <CardFooter>
-                    <Button type="submit" disabled={isLoading} className="w-full">
-                      {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                      Generate
-                    </Button>
-                  </CardFooter>
-                </form>
-              </Form>
-            </Card>
-          </div>
-
-          <div className="lg:col-span-2">
-            {isLoading && (
+      <AppHeader title="Practice Questions">
+         {generatedContent && (
+          <Button variant="outline" onClick={handleStartOver}>
+            <RefreshCcw className="mr-2 size-4" />
+            Start Over
+          </Button>
+        )}
+      </AppHeader>
+      <main className="flex flex-1 items-center justify-center overflow-auto p-4 md:p-6">
+        {!generatedContent && !isLoading && (
+            <div className="w-full max-w-2xl">
               <Card>
                 <CardHeader>
-                  <Skeleton className="h-8 w-3/4" />
-                  <Skeleton className="h-4 w-1/2" />
+                  <CardTitle>Generate a Question</CardTitle>
+                  <CardDescription>Select your preferences to generate a custom IELTS practice question.</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <Skeleton className="h-20 w-full" />
-                  <Skeleton className="h-8 w-1/4" />
-                  <Skeleton className="h-32 w-full" />
-                </CardContent>
+                <Form {...form}>
+                  <form onSubmit={form.handleSubmit(onGenerateSubmit)}>
+                    <CardContent className="space-y-4">
+                      <FormField
+                        control={form.control}
+                        name="questionType"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Question Type</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select a question type" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {questionTypes.map((type) => (
+                                  <SelectItem key={type.value} value={type.value}>
+                                    {type.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="difficulty"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Difficulty</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select a difficulty level" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="easy">Easy</SelectItem>
+                                <SelectItem value="medium">Medium</SelectItem>
+                                <SelectItem value="hard">Hard</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="topic"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Topic (Optional)</FormLabel>
+                            <FormControl>
+                              <Input placeholder="e.g., Environment, Technology" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </CardContent>
+                    <CardFooter>
+                      <Button type="submit" disabled={isLoading} className="w-full">
+                        {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        Generate
+                      </Button>
+                    </CardFooter>
+                  </form>
+                </Form>
               </Card>
-            )}
+            </div>
+        )}
 
-            {generatedContent && (
+        {isLoading && (
+          <div className="w-full max-w-4xl">
+            <Card>
+              <CardHeader>
+                <Skeleton className="h-8 w-3/4" />
+                <Skeleton className="h-4 w-1/2" />
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Skeleton className="h-20 w-full" />
+                <Skeleton className="h-8 w-1/4" />
+                <Skeleton className="h-32 w-full" />
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {generatedContent && !isLoading && (
+            <div className="w-full max-w-4xl">
               <Card className="flex h-full flex-col">
                 <CardHeader className="flex-row items-start justify-between gap-4">
                   <div>
@@ -389,18 +406,8 @@ export default function PracticeQuestionsPage() {
                   <ExamTimer initialTime={timerDuration} />
                 </CardFooter>
               </Card>
-            )}
-
-            {!isLoading && !generatedContent && (
-              <div className="flex h-full min-h-[400px] items-center justify-center rounded-lg border-2 border-dashed">
-                <div className="text-center">
-                  <p className="text-lg font-medium">Your question will appear here</p>
-                  <p className="text-sm text-muted-foreground">Fill out the form and click "Generate"</p>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
+            </div>
+        )}
       </main>
     </div>
   );
