@@ -54,6 +54,7 @@ function WritingPractice() {
     resolver: zodResolver(TopicFormSchema),
     defaultValues: {
       task: 'Task 2',
+      trainingType: 'Academic', // Default value
       topic: '',
     },
   });
@@ -360,3 +361,5 @@ export default function WritingPage() {
     </Suspense>
   );
 }
+
+    
