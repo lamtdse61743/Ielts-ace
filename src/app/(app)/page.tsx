@@ -55,6 +55,19 @@ export default function PracticeQuestionsPage() {
 
   const readingForm = useForm();
 
+  const handleApiError = (error: any, defaultMessage: string) => {
+    console.error('API Error:', error);
+    let description = defaultMessage;
+    if (error instanceof Error && error.message.includes('429')) {
+      description = 'API rate limit exceeded. Please check your billing status or try again later.';
+    }
+    toast({
+      variant: 'destructive',
+      title: 'Error',
+      description,
+    });
+  };
+
   const onGenerateSubmit: SubmitHandler<FormValues> = async (data) => {
     setIsLoading(true);
     setGeneratedContent(null);
@@ -76,12 +89,7 @@ export default function PracticeQuestionsPage() {
       };
       setGeneratedContent(content);
     } catch (error) {
-      console.error('Error generating practice question:', error);
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: 'Failed to generate practice question. Please try again.',
-      });
+      handleApiError(error, 'Failed to generate practice question. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -102,7 +110,8 @@ export default function PracticeQuestionsPage() {
     let correctAnswers = 0;
     generatedContent.passages.forEach(passage => {
       passage.questions.forEach((q) => {
-        if (data[`q_${q.questionNumber}`]?.toLowerCase() === q.answer.toLowerCase()) {
+        const userAnswer = data[`q_${q.questionNumber}`];
+        if (userAnswer && userAnswer.toLowerCase().trim() === q.answer.toLowerCase().trim()) {
           correctAnswers++;
         }
       });
@@ -126,7 +135,7 @@ export default function PracticeQuestionsPage() {
     try {
       const feedbackPromises = generatedContent.passages.map(passage => {
         const questionsAndAnswers = passage.questions.map((q) => ({
-          questionText: `${q.questionNumber}. ${q.questionText}`,
+          questionText: q.questionText,
           userAnswer: userAnswers[`q_${q.questionNumber}`] || 'Not answered',
           correctAnswer: q.answer,
         }));
@@ -143,16 +152,17 @@ export default function PracticeQuestionsPage() {
       feedbackResults.forEach(result => {
         combinedFeedback.feedback.push(...result.feedback);
       });
+      // Sort feedback by question number to ensure it matches the display order
+      combinedFeedback.feedback.sort((a, b) => {
+          const aNum = parseInt(a.questionText.split('.')[0]);
+          const bNum = parseInt(b.questionText.split('.')[0]);
+          return aNum - bNum;
+      });
 
       setFeedback(combinedFeedback);
 
     } catch (error) {
-       console.error('Error getting feedback:', error);
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: 'Failed to get feedback. Please try again.',
-      });
+       handleApiError(error, 'Failed to get feedback. Please try again.');
     } finally {
       setIsFeedbackLoading(false);
     }
@@ -171,25 +181,28 @@ export default function PracticeQuestionsPage() {
   
   const renderQuestion = (question: any, index: number) => {
     const fieldName = `q_${question.questionNumber}`;
-    const feedbackItem = feedback?.feedback.find(f => f.questionText.startsWith(`${question.questionNumber}.`));
+    const feedbackItem = feedback?.feedback.find(f => f.questionText.startsWith(question.questionText.split('. ')[0]));
 
     const questionContent = () => {
-      switch (question.questionType) {
+       switch (question.questionType) {
         case 'multiple-choice':
         case 'matching-headings':
         case 'matching-features':
         case 'matching-sentence-endings':
           return (
-             <RadioGroup onValueChange={(value) => readingForm.setValue(fieldName, value)} className="space-y-2">
-              {question.options?.map((option: string, i: number) => (
-                <FormItem key={i} className="flex items-center space-x-3">
-                  <FormControl>
-                    <RadioGroupItem value={option} id={`${fieldName}-${i}`} disabled={score !== null} />
-                  </FormControl>
-                  <FormLabel htmlFor={`${fieldName}-${i}`} className="font-normal">{option}</FormLabel>
-                </FormItem>
-              ))}
-            </RadioGroup>
+            <div>
+              <div className="mb-3 prose prose-sm dark:prose-invert max-w-none" dangerouslySetInnerHTML={{__html: question.questionText}}/>
+              <RadioGroup onValueChange={(value) => readingForm.setValue(fieldName, value)} className="space-y-2">
+                {question.options?.map((option: string, i: number) => (
+                  <FormItem key={i} className="flex items-center space-x-3">
+                    <FormControl>
+                      <RadioGroupItem value={option} id={`${fieldName}-${i}`} disabled={score !== null} />
+                    </FormControl>
+                    <FormLabel htmlFor={`${fieldName}-${i}`} className="font-normal">{option}</FormLabel>
+                  </FormItem>
+                ))}
+              </RadioGroup>
+            </div>
           );
         case 'true-false-not-given':
         case 'yes-no-not-given':
@@ -197,16 +210,19 @@ export default function PracticeQuestionsPage() {
             ? ['True', 'False', 'Not Given'] 
             : ['Yes', 'No', 'Not Given'];
           return (
-             <RadioGroup onValueChange={(value) => readingForm.setValue(fieldName, value)} className="flex space-x-4">
-              {options.map((opt, i) => (
-                <FormItem key={i} className="flex items-center space-x-3">
-                  <FormControl>
-                    <RadioGroupItem value={opt} id={`${fieldName}-${i}`} disabled={score !== null} />
-                  </FormControl>
-                  <FormLabel htmlFor={`${fieldName}-${i}`} className="font-normal">{opt}</FormLabel>
-                </FormItem>
-              ))}
-            </RadioGroup>
+            <div>
+              <div className="mb-3 prose prose-sm dark:prose-invert max-w-none" dangerouslySetInnerHTML={{__html: question.questionText}}/>
+              <RadioGroup onValueChange={(value) => readingForm.setValue(fieldName, value)} className="flex space-x-4">
+                {options.map((opt, i) => (
+                  <FormItem key={i} className="flex items-center space-x-3">
+                    <FormControl>
+                      <RadioGroupItem value={opt} id={`${fieldName}-${i}`} disabled={score !== null} />
+                    </FormControl>
+                    <FormLabel htmlFor={`${fieldName}-${i}`} className="font-normal">{opt}</FormLabel>
+                  </FormItem>
+                ))}
+              </RadioGroup>
+            </div>
           );
         case 'short-answer':
         case 'sentence-completion':
@@ -215,22 +231,26 @@ export default function PracticeQuestionsPage() {
         case 'table-completion':
         case 'flow-chart-completion':
         case 'diagram-completion':
-           return <Input {...readingForm.register(fieldName)} disabled={score !== null} placeholder="Your answer" />;
+           return (
+            <div>
+              <div className="mb-3 prose prose-sm dark:prose-invert max-w-none" dangerouslySetInnerHTML={{__html: question.questionText}}/>
+              <Input {...readingForm.register(fieldName)} disabled={score !== null} placeholder="Your answer" />
+            </div>
+          );
         default:
           return <p className="text-sm text-muted-foreground">Unsupported question type: {question.questionType}</p>;
       }
     };
     
     return (
-      <div key={index} className="mb-6 rounded-md border p-4">
-        <div className="mb-3 prose prose-sm dark:prose-invert max-w-none" dangerouslySetInnerHTML={{__html: question.questionText}}/>
-        <FormField
+      <div key={index} className="mb-6">
+         <FormField
           control={readingForm.control}
           name={fieldName}
           render={() => (
-            <FormItem>
+            <FormItem className="rounded-md border p-4">
               <FormControl>
-                <div>{questionContent()}</div>
+                {questionContent()}
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -379,44 +399,46 @@ export default function PracticeQuestionsPage() {
                     <Form {...readingForm}>
                       <form onSubmit={readingForm.handleSubmit(onAnswersSubmit)}>
                         {currentPassage.questions.map(renderQuestion)}
-                        {currentPassageIndex === (generatedContent.passages.length - 1) && (
+                        {currentPassageIndex === (generatedContent.passages.length - 1) && score === null && (
                           <div className="mt-6 flex items-center justify-between gap-4">
                             <Button type="submit" disabled={score !== null}>Submit All Answers</Button>
-                            {score !== null && (
-                              <p className="text-lg font-bold">Total Score: {score}/{totalQuestions}</p>
-                            )}
                           </div>
                         )}
                       </form>
                     </Form>
+                     {score !== null && (
+                      <div className="mt-6 flex flex-col items-center justify-center gap-4 rounded-lg border bg-card p-6 text-center">
+                        <p className="text-lg font-bold">Total Score: {score}/{totalQuestions}</p>
+                        {!feedback && (
+                           <Button onClick={handleGetFeedback} disabled={isFeedbackLoading} className="w-full max-w-xs">
+                            {isFeedbackLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            Get Feedback
+                          </Button>
+                        )}
+                      </div>
+                    )}
                   </CardContent>
                   <CardFooter className="flex flex-col items-stretch gap-4">
-                  {score !== null && !feedback && (
-                    <Button onClick={handleGetFeedback} disabled={isFeedbackLoading} className="w-full">
-                      {isFeedbackLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                      Get Feedback
-                    </Button>
-                  )}
-                  <div className="flex items-center justify-between">
-                      <Button 
-                        variant="outline"
-                        onClick={() => setCurrentPassageIndex(p => p - 1)} 
-                        disabled={currentPassageIndex === 0}>
-                          <ArrowLeft className="mr-2 size-4" />
-                          Back
-                      </Button>
-                      <div className="text-center">
-                        <p className="text-sm font-medium">Passage {currentPassageIndex + 1} of {generatedContent.passages.length}</p>
-                        <Progress value={((currentPassageIndex + 1) / generatedContent.passages.length) * 100} className="mt-1 h-2 w-24" />
-                      </div>
-                      <Button 
-                        variant="outline"
-                        onClick={() => setCurrentPassageIndex(p => p + 1)}
-                        disabled={currentPassageIndex === generatedContent.passages.length - 1}>
-                          Next
-                          <ArrowRight className="ml-2 size-4" />
-                      </Button>
-                  </div>
+                    <div className="flex items-center justify-between">
+                        <Button 
+                          variant="outline"
+                          onClick={() => setCurrentPassageIndex(p => p - 1)} 
+                          disabled={currentPassageIndex === 0}>
+                            <ArrowLeft className="mr-2 size-4" />
+                            Back
+                        </Button>
+                        <div className="text-center">
+                          <p className="text-sm font-medium">Passage {currentPassageIndex + 1} of {generatedContent.passages.length}</p>
+                          <Progress value={((currentPassageIndex + 1) / generatedContent.passages.length) * 100} className="mt-1 h-2 w-24" />
+                        </div>
+                        <Button 
+                          variant="outline"
+                          onClick={() => setCurrentPassageIndex(p => p + 1)}
+                          disabled={currentPassageIndex === generatedContent.passages.length - 1}>
+                            Next
+                            <ArrowRight className="ml-2 size-4" />
+                        </Button>
+                    </div>
                     <ExamTimer initialTime={3600} />
                   </CardFooter>
                 </Card>
@@ -426,3 +448,5 @@ export default function PracticeQuestionsPage() {
     </div>
   );
 }
+
+    

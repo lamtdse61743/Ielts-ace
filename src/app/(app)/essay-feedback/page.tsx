@@ -44,6 +44,19 @@ export default function EssayFeedbackPage() {
     },
   });
 
+  const handleApiError = (error: any, defaultMessage: string) => {
+    console.error('API Error:', error);
+    let description = defaultMessage;
+    if (error instanceof Error && error.message.includes('429')) {
+      description = 'API rate limit exceeded. Please check your billing status or try again later.';
+    }
+    toast({
+      variant: 'destructive',
+      title: 'Error',
+      description,
+    });
+  };
+
   const onSubmit: SubmitHandler<FormValues> = async (data) => {
     setIsLoading(true);
     setAnalyzedEssay(null);
@@ -59,12 +72,7 @@ export default function EssayFeedbackPage() {
       };
       setAnalyzedEssay(content);
     } catch (error) {
-      console.error('Error getting essay feedback:', error);
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: 'Failed to get feedback. Please try again.',
-      });
+      handleApiError(error, 'Failed to get feedback. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -224,3 +232,5 @@ export default function EssayFeedbackPage() {
     </div>
   );
 }
+
+    
