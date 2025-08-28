@@ -1,6 +1,8 @@
+
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useForm, type SubmitHandler, type FieldValues } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -32,7 +34,10 @@ const FormSchema = z.object({
 
 type FormValues = z.infer<typeof FormSchema>;
 
-export default function PracticeQuestionsPage() {
+function ReadingPractice() {
+  const searchParams = useSearchParams();
+  const initialTrainingType = searchParams.get('type') as 'Academic' | 'General Training' | null;
+
   const [isLoading, setIsLoading] = useState(false);
   const [isFeedbackLoading, setIsFeedbackLoading] = useState(false);
   const [generatedContent, setGeneratedContent] = useState<GeneratedQuestion | null>(null);
@@ -52,6 +57,14 @@ export default function PracticeQuestionsPage() {
       topic: '',
     },
   });
+
+  // Set training type from URL search params
+  useEffect(() => {
+    if (initialTrainingType) {
+      form.setValue('trainingType', initialTrainingType);
+    }
+  }, [initialTrainingType, form]);
+
 
   const readingForm = useForm();
 
@@ -77,6 +90,9 @@ export default function PracticeQuestionsPage() {
     setCurrentPassageIndex(0);
     try {
       const result = await generatePracticeQuestion(data);
+      if (!result || !result.passages || result.passages.length === 0) {
+        throw new Error('The generated content is invalid or empty.');
+      }
       const content: GeneratedQuestion = {
         ...result,
         id: uuidv4(),
@@ -135,21 +151,10 @@ export default function PracticeQuestionsPage() {
     const userAnswers = readingForm.getValues();
 
     try {
-      const allQuestionsAndAnswers = generatedContent.passages.flatMap(passage => 
-        passage.questionGroups.flatMap(group => 
-          group.questions.map(q => ({
-            questionText: `Q${q.questionNumber}: ${q.questionText}`,
-            userAnswer: userAnswers[`q_${q.questionNumber}`] || 'Not answered',
-            correctAnswer: q.answer,
-            passageText: passage.passageText
-          }))
-        )
-      );
-
       const feedbackPromises = generatedContent.passages.map(passage => {
         const passageQuestions = passage.questionGroups.flatMap(group => 
           group.questions.map(q => ({
-            questionText: `Q${q.questionNumber}: ${q.questionText}`, // Keep consistent format for feedback lookup
+            questionText: `Q${q.questionNumber}:`, // Match the feedback lookup key
             userAnswer: userAnswers[`q_${q.questionNumber}`] || 'Not answered',
             correctAnswer: q.answer,
           }))
@@ -310,7 +315,7 @@ export default function PracticeQuestionsPage() {
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Test Type</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
                               <FormControl>
                                 <SelectTrigger>
                                   <SelectValue placeholder="Select a test type" />
@@ -396,7 +401,7 @@ export default function PracticeQuestionsPage() {
                     </Button>
                   </CardHeader>
                   <CardContent>
-                      <div className="prose prose-sm dark:prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: currentPassage.passageText }} />
+                      <div className="prose dark:prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: currentPassage.passageText }} />
                   </CardContent>
                 </Card>
 
@@ -461,4 +466,12 @@ export default function PracticeQuestionsPage() {
       </main>
     </div>
   );
+}
+
+export default function PracticeQuestionsPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <ReadingPractice />
+    </Suspense>
+  )
 }

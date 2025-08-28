@@ -1,6 +1,8 @@
+
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useForm, type SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -20,16 +22,20 @@ import type { AnalyzedEssay, SavedContent } from '@/lib/types';
 import { useSavedContent } from '@/hooks/use-saved-content';
 import { Bookmark, BrainCircuit, Loader2, SpellCheck, Waypoints, Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const FormSchema = z.object({
-  topic: z.string().min(3, 'Please provide the essay topic.'),
-  instructions: z.string().optional(),
+  task: z.enum(['Task 1', 'Task 2']),
+  topic: z.string().optional(),
   essay: z.string().min(50, 'Essay must be at least 50 characters long.'),
 });
 
 type FormValues = z.infer<typeof FormSchema>;
 
-export default function WritingPage() {
+function WritingPractice() {
+  const searchParams = useSearchParams();
+  const trainingType = searchParams.get('type') as 'Academic' | 'General Training' | null;
+
   const [isLoading, setIsLoading] = useState(false);
   const [analyzedEssay, setAnalyzedEssay] = useState<AnalyzedEssay | null>(null);
   const { toast } = useToast();
@@ -38,8 +44,8 @@ export default function WritingPage() {
   const form = useForm<FormValues>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
+      task: 'Task 2',
       topic: '',
-      instructions: '',
       essay: '',
     },
   });
@@ -60,13 +66,19 @@ export default function WritingPage() {
   const onSubmit: SubmitHandler<FormValues> = async (data) => {
     setIsLoading(true);
     setAnalyzedEssay(null);
+
+    const topicWithTask = `${trainingType} ${data.task}: ${data.topic || 'General Topic'}`;
+
     try {
-      const feedback = await essayFeedback(data);
+      const feedback = await essayFeedback({
+        topic: topicWithTask,
+        essay: data.essay,
+      });
       const content: AnalyzedEssay = {
         id: uuidv4(),
         type: 'essay',
         essay: data.essay,
-        topic: data.topic,
+        topic: topicWithTask,
         feedback,
         createdAt: new Date().toISOString(),
       };
@@ -91,7 +103,7 @@ export default function WritingPage() {
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <AppHeader title="Writing Feedback" />
+      <AppHeader title={`Writing Practice (${trainingType || '...'})`} />
       <main className="flex-1 overflow-auto p-4 md:p-6">
         <div className="grid gap-6 lg:grid-cols-3">
           <Card className="lg:col-span-1">
@@ -104,30 +116,48 @@ export default function WritingPage() {
                 <CardContent className="space-y-4">
                   <FormField
                     control={form.control}
+                    name="task"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Task</FormLabel>
+                        <FormControl>
+                          <Tabs
+                            value={field.value}
+                            onValueChange={field.onChange}
+                            className="w-full"
+                          >
+                            <TabsList className="grid w-full grid-cols-2">
+                              <TabsTrigger value="Task 1">Task 1</TabsTrigger>
+                              <TabsTrigger value="Task 2">Task 2</TabsTrigger>
+                            </TabsList>
+                          </Tabs>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
                     name="topic"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Essay Topic</FormLabel>
+                        <FormLabel>Topic (Optional)</FormLabel>
                         <FormControl>
-                          <Input placeholder="e.g., The advantages and disadvantages of online learning" {...field} />
+                          <Input 
+                            placeholder={
+                              form.watch('task') === 'Task 1' 
+                                ? 'e.g., Describe the provided chart/graph' 
+                                : 'e.g., The advantages of online learning'
+                            } 
+                            {...field} 
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
-                  <FormField
-                    control={form.control}
-                    name="instructions"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Instructions (Optional)</FormLabel>
-                        <FormControl>
-                          <Input placeholder="e.g., Write at least 250 words" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+
                   <FormField
                     control={form.control}
                     name="essay"
@@ -171,7 +201,7 @@ export default function WritingPage() {
                 <CardHeader className="flex-row items-start justify-between gap-4">
                   <div>
                     <CardTitle className="font-headline text-xl">Feedback for Your Essay</CardTitle>
-                    <CardDescription>Topic: {analyzedEssay.topic}</CardDescription>
+                    <CardDescription>{analyzedEssay.topic}</CardDescription>
                   </div>
                    <Button variant="ghost" size="icon" onClick={handleSaveToggle}>
                     <Bookmark className={cn('size-5', isSaved(analyzedEssay.id) && 'fill-primary text-primary')} />
@@ -213,7 +243,7 @@ export default function WritingPage() {
                   </Accordion>
                 </CardContent>
                 <CardFooter>
-                  <ExamTimer initialTime={2400} />
+                   <ExamTimer initialTime={form.getValues('task') === 'Task 1' ? 1200 : 2400} />
                 </CardFooter>
               </Card>
             )}
@@ -230,5 +260,14 @@ export default function WritingPage() {
         </div>
       </main>
     </div>
+  );
+}
+
+
+export default function WritingPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <WritingPractice />
+    </Suspense>
   );
 }
