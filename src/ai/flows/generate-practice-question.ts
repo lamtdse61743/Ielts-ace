@@ -33,7 +33,7 @@ export type GeneratePracticeQuestionInput = z.infer<
 
 const ReadingQuestionSchema = z.object({
   questionNumber: z.number().describe('The number of the question in the sequence (1-40).'),
-  questionText: z.string().describe('The main text or instruction for the question.'),
+  questionText: z.string().describe('The main text or instruction for the question, including any specific guidance (e.g., "Choose ONE WORD ONLY"). This should be formatted in HTML.'),
   questionType: z.enum([
     'multiple-choice',
     'true-false-not-given',
@@ -107,6 +107,13 @@ Each passage must have a set of associated questions. You must create a mix of q
 - flow-chart-completion
 - diagram-completion
 - short-answer
+
+For each question, the 'questionText' field must include clear, concise instructions for the user. For example:
+- For sentence completion: 'Complete the sentences below. Choose ONE WORD ONLY from the passage for each answer.'
+- For multiple choice: 'Choose the correct letter, A, B, C or D.'
+- For short-answer: 'Answer the questions below. Choose NO MORE THAN TWO WORDS from the passage for each answer.'
+- For matching headings: 'The reading passage has seven paragraphs, A-G. Choose the correct heading for each paragraph from the list of headings below.'
+- The question text itself, along with the instructions, must be formatted in HTML (e.g., using <p>, <strong>, <ul>, <li>).
 
 Ensure the question numbering is sequential from 1 to 40 across all three passages.
 Your entire response must be in a single JSON object that strictly follows the output schema.

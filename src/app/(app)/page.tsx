@@ -223,7 +223,7 @@ export default function PracticeQuestionsPage() {
     
     return (
       <div key={index} className="mb-6 rounded-md border p-4">
-        <p className="mb-3 font-semibold">{question.questionNumber}. {question.questionText}</p>
+        <div className="mb-3 prose prose-sm dark:prose-invert max-w-none" dangerouslySetInnerHTML={{__html: question.questionText}}/>
         <FormField
           control={readingForm.control}
           name={fieldName}
@@ -346,10 +346,9 @@ export default function PracticeQuestionsPage() {
 
         {isLoading && (
           <div className="flex w-full flex-col items-center justify-center space-y-4">
+            <Loader2 className="h-12 w-12 animate-spin text-primary" />
             <p className="text-lg font-semibold">Generating your test...</p>
-            <div className="running-cat-container">
-              <div className="running-cat"></div>
-            </div>
+            <p className="text-sm text-muted-foreground">This may take a moment. Please wait.</p>
           </div>
         )}
 
