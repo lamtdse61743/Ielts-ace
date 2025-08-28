@@ -29,7 +29,7 @@ const FormSchema = z.object({
 
 type FormValues = z.infer<typeof FormSchema>;
 
-export default function EssayFeedbackPage() {
+export default function WritingPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [analyzedEssay, setAnalyzedEssay] = useState<AnalyzedEssay | null>(null);
   const { toast } = useToast();
@@ -77,7 +77,7 @@ export default function EssayFeedbackPage() {
       setIsLoading(false);
     }
   };
-  
+
   const handleSaveToggle = () => {
     if (!analyzedEssay) return;
     if (isSaved(analyzedEssay.id)) {
@@ -91,7 +91,7 @@ export default function EssayFeedbackPage() {
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <AppHeader title="Essay Feedback" />
+      <AppHeader title="Writing Feedback" />
       <main className="flex-1 overflow-auto p-4 md:p-6">
         <div className="grid gap-6 lg:grid-cols-3">
           <Card className="lg:col-span-1">

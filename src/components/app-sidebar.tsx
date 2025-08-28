@@ -14,7 +14,7 @@ import {
   SidebarFooter,
 } from '@/components/ui/sidebar';
 import { Logo } from '@/components/icons';
-import { Bookmark, Notebook, PenSquare } from 'lucide-react';
+import { Bookmark, Notebook, PenSquare, Home, Headphones, Mic } from 'lucide-react';
 
 export function AppSidebar() {
   const pathname = usePathname();
@@ -22,10 +22,10 @@ export function AppSidebar() {
   return (
     <Sidebar>
       <SidebarHeader>
-        <div className="flex items-center gap-2">
+        <Link href="/" className="flex items-center gap-2">
           <Logo className="size-8 text-primary" />
           <h1 className="font-headline text-lg font-semibold">IELTS Ace</h1>
-        </div>
+        </Link>
       </SidebarHeader>
       <SidebarContent>
         <SidebarMenu>
@@ -33,23 +33,61 @@ export function AppSidebar() {
             <SidebarMenuButton
               asChild
               isActive={pathname === '/'}
-              tooltip="Practice Questions"
+              tooltip="Home"
             >
               <Link href="/">
-                <Notebook />
-                <span>Practice Questions</span>
+                <Home />
+                <span>Home</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton
               asChild
-              isActive={pathname === '/essay-feedback'}
-              tooltip="Essay Feedback"
+              isActive={pathname.startsWith('/reading')}
+              tooltip="Reading"
             >
-              <Link href="/essay-feedback">
+              <Link href="/reading">
+                <Notebook />
+                <span>Reading</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+           <SidebarMenuItem>
+            <SidebarMenuButton
+              asChild
+              isActive={pathname.startsWith('/listening')}
+              tooltip="Listening"
+              disabled
+            >
+              <Link href="/listening">
+                <Headphones />
+                <span>Listening</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              asChild
+              isActive={pathname.startsWith('/writing')}
+              tooltip="Writing"
+            >
+              <Link href="/writing">
                 <PenSquare />
-                <span>Essay Feedback</span>
+                <span>Writing</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+           <SidebarMenuItem>
+            <SidebarMenuButton
+              asChild
+              isActive={pathname.startsWith('/speaking')}
+              tooltip="Speaking"
+              disabled
+            >
+              <Link href="/speaking">
+                <Mic />
+                <span>Speaking</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
