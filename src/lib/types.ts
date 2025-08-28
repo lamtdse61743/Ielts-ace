@@ -30,6 +30,8 @@ export type AnalyzedEssay = {
   type: 'essay';
   essay: string;
   topic: string;
+  trainingType: 'Academic' | 'General Training';
+  task: 'Task 1' | 'Task 2';
   feedback: EssayFeedbackOutput;
   createdAt: string;
 };

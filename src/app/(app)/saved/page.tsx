@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useSavedContent } from '@/hooks/use-saved-content';
-import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 import { Bookmark, FileText, Notebook, Trash2 } from 'lucide-react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
@@ -75,7 +74,9 @@ export default function SavedPage() {
                   item.type === 'essay' ? (
                      <Card key={item.id} className="flex flex-col">
                       <CardHeader>
-                        <CardTitle className="truncate text-base" title={item.topic}>{item.topic}</CardTitle>
+                        <CardTitle className="truncate text-base" title={item.topic}>
+                          {item.trainingType} - {item.task}
+                        </CardTitle>
                         <CardDescription>
                           Saved {formatDistanceToNow(new Date(item.createdAt), { addSuffix: true })}
                         </CardDescription>
@@ -84,11 +85,11 @@ export default function SavedPage() {
                         <Accordion type="single" collapsible>
                           <AccordionItem value="essay">
                             <AccordionTrigger>View Original Essay</AccordionTrigger>
-                            <AccordionContent className="line-clamp-4">{item.essay}</AccordionContent>
+                            <AccordionContent className="line-clamp-4 prose dark:prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: item.essay }} />
                           </AccordionItem>
                           <AccordionItem value="feedback">
                             <AccordionTrigger>View Feedback</AccordionTrigger>
-                            <AccordionContent className="line-clamp-4">{item.feedback.overallFeedback}</AccordionContent>
+                            <AccordionContent className="line-clamp-4 prose dark:prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: item.feedback.improvements }} />
                           </AccordionItem>
                         </Accordion>
                       </CardContent>

@@ -14,20 +14,51 @@ import {z} from 'genkit';
 const EssayFeedbackInputSchema = z.object({
   essay: z.string().describe('The essay to provide feedback on.'),
   topic: z.string().describe('The topic of the essay.'),
-  instructions: z.string().optional().describe('Any specific instructions given for the essay.'),
+  instructions: z
+    .string()
+    .optional()
+    .describe('Any specific instructions given for the essay.'),
 });
 export type EssayFeedbackInput = z.infer<typeof EssayFeedbackInputSchema>;
 
+const BandEvaluationSchema = z.object({
+  band: z.number().describe('The band score for this criterion (1-9).'),
+  feedback: z
+    .string()
+    .describe('Detailed feedback for this criterion in HTML format.'),
+});
+
 const EssayFeedbackOutputSchema = z.object({
-  grammar: z.string().describe('Feedback on the grammar of the essay, in HTML format.'),
-  vocabulary: z.string().describe('Feedback on the vocabulary used in the essay, in HTML format.'),
-  coherence: z.string().describe('Feedback on the coherence and flow of the essay, in HTML format.'),
-  argumentation: z.string().describe('Feedback on the argumentation presented in the essay, in HTML format.'),
-  overallFeedback: z.string().describe('Overall feedback and suggestions for improvement, in HTML format.'),
+  taskResponse: BandEvaluationSchema.describe(
+    'Evaluation of Task Response.'
+  ),
+  coherenceAndCohesion: BandEvaluationSchema.describe(
+    'Evaluation of Coherence and Cohesion.'
+  ),
+  lexicalResource: BandEvaluationSchema.describe(
+    'Evaluation of Lexical Resource.'
+  ),
+  grammaticalRangeAndAccuracy: BandEvaluationSchema.describe(
+    'Evaluation of Grammatical Range and Accuracy.'
+  ),
+  overallBand: z.number().describe('The overall band score for the essay.'),
+  improvements: z
+    .string()
+    .describe(
+      'Suggestions for what should be improved, in HTML list format.'
+    ),
+  spellingErrors: z
+    .string()
+    .describe('A list of spelling errors found, in HTML list format.'),
+  grammaticalErrors: z
+    .string()
+    .describe('A list of grammatical errors found, in HTML list format.'),
 });
 export type EssayFeedbackOutput = z.infer<typeof EssayFeedbackOutputSchema>;
 
-export async function essayFeedback(input: EssayFeedbackInput): Promise<EssayFeedbackOutput> {
+export async function essayFeedback(
+  input: EssayFeedbackInput
+): Promise<EssayFeedbackOutput> {
   return essayFeedbackFlow(input);
 }
 
@@ -35,18 +66,77 @@ const prompt = ai.definePrompt({
   name: 'essayFeedbackPrompt',
   input: {schema: EssayFeedbackInputSchema},
   output: {schema: EssayFeedbackOutputSchema},
-  prompt: `You are an AI essay feedback assistant. Your task is to provide feedback on an essay based on the following criteria. Format your response in HTML (e.g., use <p> for paragraphs and <ul>/<li)> for lists).
-
-*   Grammar: Identify and correct grammatical errors. Suggest improvements to sentence structure.
-*   Vocabulary: Assess the richness and appropriateness of the vocabulary. Suggest alternative word choices to enhance clarity and impact.
-*   Coherence: Evaluate the logical flow and organization of ideas. Provide recommendations on improving transitions and paragraph structure.
-*   Argumentation: Analyze the strength and validity of the arguments presented. Offer guidance on strengthening claims and providing evidence.
+  prompt: `You are an expert IELTS examiner. Your task is to evaluate an essay based on the official IELTS Writing Task 2 band descriptors. You must provide a band score (1-9) for each of the four criteria, an overall band score, and detailed feedback.
 
 Essay Topic: {{{topic}}}
-Essay Instructions (if any): {{{instructions}}}
-Essay: {{{essay}}}
+Essay Instructions: {{{instructions}}}
+User's Essay:
+---
+{{{essay}}}
+---
 
-Please provide detailed feedback in each of the following categories. Make sure to follow the EssayFeedbackOutputSchema output schema. The Zod descriptions there are instructions for what your output should contain. Focus on being helpful and actionable.
+Please evaluate the essay against the following IELTS band descriptors. For each of the four criteria, provide a band score and specific, constructive feedback formatted as HTML. Your feedback should explain WHY the user received that band score, referencing both the user's essay and the band descriptors. Also, list specific spelling and grammatical errors.
+
+**IELTS WRITING TASK 2: Band Descriptors**
+
+**Band 9**
+- Task Response: Fully addresses all parts of the prompt; presents a fully developed position with relevant, fully extended, and well-supported ideas.
+- Coherence and Cohesion: Skillfully manages paragraphing; uses cohesion in a way that it attracts no attention.
+- Lexical Resource: Uses a wide range of vocabulary with very natural and sophisticated control; rare minor errors occur only as 'slips'.
+- Grammatical Range and Accuracy: Uses a wide range of structures with full flexibility and accuracy; rare minor errors are only 'slips'.
+
+**Band 8**
+- Task Response: Sufficiently addresses all parts of the prompt; presents a well-developed response with relevant, extended, and supported ideas.
+- Coherence and Cohesion: Sequences information and ideas logically; manages all aspects of cohesion well; uses paragraphing sufficiently and appropriately.
+- Lexical Resource: Uses a wide range of vocabulary fluently and flexibly; skillful use of uncommon lexical items; produces rare errors in word choice and collocation.
+- Grammatical Range and Accuracy: Uses a wide range of structures flexibly and accurately; the majority of sentences are error-free.
+
+**Band 7**
+- Task Response: Addresses all parts of the prompt; presents a clear position throughout; presents, extends and supports main ideas, but may have a tendency to over-generalise.
+- Coherence and Cohesion: Logically organises information and ideas; there is a clear progression; uses a range of cohesive devices appropriately, although there may be some under-/over-use.
+- Lexical Resource: Uses a sufficient range of vocabulary to allow some flexibility and precision; uses less common lexical items with some awareness of style and collocation; may produce occasional errors in word choice, spelling and/or word formation.
+- Grammatical Range and Accuracy: Uses a variety of complex structures; produces frequent error-free sentences; has good control of grammar and punctuation but may make a few errors.
+
+**Band 6**
+- Task Response: Addresses all parts of the prompt although some parts may be more fully covered; presents a relevant position although the conclusions may become unclear or repetitive.
+- Coherence and Cohesion: Arranges information and ideas coherently and there is a clear overall progression; uses cohesive devices effectively, but cohesion within and/or between sentences may be faulty or mechanical.
+- Lexical Resource: Uses an adequate range of vocabulary for the task; attempts to use less common vocabulary but with some inaccuracy.
+- Grammatical Range and Accuracy: Uses a mix of simple and complex sentence forms; makes some errors in grammar and punctuation, but they rarely reduce communication.
+
+**Band 5**
+- Task Response: Addresses the task only partially; the format may be inappropriate; expresses a position but the development is not always clear; presents some main ideas but these are limited and not sufficiently developed.
+- Coherence and Cohesion: Presents information with some organisation but there may be a lack of overall progression; makes inadequate, inaccurate or overuse of cohesive devices.
+- Lexical Resource: Uses a limited range of vocabulary; makes noticeable errors in spelling and/or word formation that may cause some difficulty for the reader.
+- Grammatical Range and Accuracy: Uses only a limited range of structures; attempts complex sentences but these tend to be less accurate than simple sentences; may make frequent grammatical errors that cause some difficulty for the reader.
+
+**Band 4**
+- Task Response: Responds to the task only in a minimal way; presents a position but this is unclear; presents some ideas which are irrelevant.
+- Coherence and Cohesion: Presents information and ideas but these are not arranged coherently; uses some basic cohesive devices which may be inaccurate or repetitive.
+- Lexical Resource: Uses only basic vocabulary which may be used repetitively; makes errors in word formation and/or spelling which may impede meaning.
+- Grammatical Range and Accuracy: Uses a very limited range of structures with only rare use of subordinate clauses; some structures are accurate but errors predominate and punctuation is often faulty.
+
+**Band 3**
+- Task Response: Does not adequately address any part of the prompt; does not express a clear position; presents few ideas which are largely undeveloped or irrelevant.
+- Coherence and Cohesion: Does not organise ideas logically; uses a very limited range of cohesive devices, and those used may not indicate a logical relationship.
+- Lexical Resource: Uses an extremely limited range of vocabulary; has very little control of word formation and/or spelling.
+- Grammatical Range and Accuracy: Cannot use sentence forms, except in memorised phrases; errors in grammar and punctuation predominate.
+
+**Band 2**
+- Task Response: Barely responds to the prompt; content is barely related to the prompt.
+- Coherence and Cohesion: Has very little control of organisational features.
+- Lexical Resource: Uses an extremely limited vocabulary; no control of word formation and/or spelling.
+- Grammatical Range and Accuracy: Cannot use sentence forms except in memorised phrases.
+
+**Band 1**
+- Task Response: Answer is wholly unrelated to the prompt.
+- Coherence and Cohesion: Fails to communicate any message.
+- Lexical Resource: Only a few isolated words.
+- Grammatical Range and Accuracy: Cannot be said to use sentence forms.
+
+**Band 0**
+- Did not attend, did not attempt, or wrote a wholly memorised response.
+
+Based on this, provide your full evaluation in a single JSON object that strictly follows the output schema.
 `,
 });
 
