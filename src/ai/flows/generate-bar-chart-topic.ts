@@ -37,7 +37,7 @@ const prompt = ai.definePrompt({
   name: 'generateBarChartTopicPrompt',
   input: {schema: GenerateBarChartTopicInputSchema},
   output: {schema: GenerateBarChartTopicOutputSchema},
-  prompt: `You are an expert IELTS exam creator. Your task is to generate a complete writing prompt for IELTS Writing Task 1 (Academic) that involves a bar chart comparing several categories.
+  prompt: `You are an expert IELTS exam creator. Your task is to generate a complete writing prompt for IELTS Writing Task 1 (Academic) that involves a grouped bar chart comparing several categories with multiple data series.
 
 {{#if topic}}
 User-provided Topic: {{{topic}}}
@@ -49,9 +49,10 @@ Please generate a random, high-quality topic appropriate for an IELTS exam.
 **CRITICAL REQUIREMENTS:**
 - The 'rawData' field MUST be a string containing a valid JSON object.
 - The JSON object inside 'rawData' MUST have a 'type' property set to "bar".
-- The topic must be varied. Do NOT repeatedly use the same topic. Choose from a diverse range of subjects like economics (e.g., average salaries for different professions), environment (e.g., waste recycling rates by material), social trends (e.g., preferred holiday destinations), or technology (e.g., percentage of people using different social media platforms).
-- The prompt MUST be specific and compare different items in a single category. Invent a realistic context, including a specific country, city, or year (e.g., "in the UK in 2022," "in the city of Sydney," "for the company TechCorp").
-- Generate a random number of categories to compare, between 4 and 6.
+- The topic must be varied. Do NOT repeatedly use the same topic. Choose from a diverse range of subjects like economics (e.g., consumer spending on different goods), environment (e.g., recycling rates in different countries), social trends (e.g., participation in various sports by gender), or technology (e.g., internet usage by age group on different devices).
+- The prompt MUST be specific. Invent a realistic context, including a specific country, city, or year (e.g., "in the UK in 2020," "for residents of Paris," "for the year 2023").
+- Generate a random number of primary categories (the groups on the x-axis) between 4 and 6.
+- Generate a random number of data series (the bars within each group) between 2 and 4.
 - Data MUST be realistic.
 
 **Response Instructions:**
@@ -60,23 +61,21 @@ Please generate a random, high-quality topic appropriate for an IELTS exam.
 - Set 'taskType' to exactly "bar".
 - The 'instructions' field should always be exactly "Summarise the information by selecting and reporting the main features, and make comparisons where relevant. Write at least 150 words."
 
-**Example for the 'rawData' string contents (Note the single data point per category):**
+**Example for a GROUPED bar chart in the 'rawData' string contents:**
 \`\`\`json
 {
   "type": "bar",
   "data": [
-    { "Profession": "Teachers", "Salary": 45000 },
-    { "Profession": "Doctors", "Salary": 75000 },
-    { "Profession": "Engineers", "Salary": 68000 },
-    { "Profession": "Nurses", "Salary": 52000 },
-    { "Profession": "Lawyers", "Salary": 82000 }
+    { "Country": "USA", "Online Sales": 350, "In-Store Sales": 750 },
+    { "Country": "UK", "Online Sales": 280, "In-Store Sales": 620 },
+    { "Country": "Germany", "Online Sales": 250, "In-Store Sales": 580 },
+    { "Country": "Japan", "Online Sales": 220, "In-Store Sales": 550 }
   ],
   "config": {
-    "dataKey": "Salary",
-    "categoryKey": "Profession",
-    "series": ["Salary"],
-    "xAxisLabel": "Profession",
-    "yAxisLabel": "Average Annual Salary (USD)"
+    "categoryKey": "Country",
+    "series": ["Online Sales", "In-Store Sales"],
+    "xAxisLabel": "Country",
+    "yAxisLabel": "Sales (in millions of USD)"
   }
 }
 \`\`\`

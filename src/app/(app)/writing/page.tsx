@@ -16,6 +16,9 @@ import {
   generateBarChartTopic,
 } from '@/ai/flows/generate-bar-chart-topic';
 import {
+  generateLineChartTopic,
+} from '@/ai/flows/generate-chart-topic';
+import {
   generateWritingTask1General,
   type GenerateWritingTask1GeneralOutput,
 } from '@/ai/flows/generate-writing-task1-general';
@@ -172,6 +175,7 @@ function WritingPractice() {
       let result: GeneratedTopic | null = null;
       if (data.task === 'Task 1') {
         if (data.trainingType === 'Academic') {
+          // TODO: Add UI to select chart type
           const rawResult = await generateBarChartTopic({ topic: data.topic });
           if (rawResult && rawResult.rawData) {
              result = {
@@ -387,9 +391,9 @@ function WritingPractice() {
                 <YAxis label={{ value: yAxisLabel, angle: -90, position: 'insideLeft', offset: -5 }} />
                 <Tooltip />
                 <Legend wrapperStyle={{ bottom: 0, left: 20 }} />
-                <Bar dataKey={dataKey} fill="hsl(var(--primary))">
-                    <LabelList dataKey={dataKey} position="top" />
-                </Bar>
+                 {series?.map((seriesName: string, index: number) => (
+                  <Bar key={seriesName} dataKey={seriesName} fill={COLORS[index % COLORS.length]} />
+                ))}
               </BarChart>
             ) : type === 'line' ? (
               <LineChart data={data} margin={{ top: 20, right: 30, left: 30, bottom: 40 }}>
@@ -398,7 +402,7 @@ function WritingPractice() {
                 <YAxis label={{ value: yAxisLabel, angle: -90, position: 'insideLeft', offset: -5 }} />
                 <Tooltip />
                 <Legend wrapperStyle={{ bottom: 0, left: 20 }}/>
-                {series?.map((seriesName, index) => (
+                {series?.map((seriesName: string, index: number) => (
                   <Line key={seriesName} type="linear" dataKey={seriesName} stroke={COLORS[index % COLORS.length]} activeDot={{ r: 8 }} />
                 ))}
               </LineChart>
