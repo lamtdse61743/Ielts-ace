@@ -63,9 +63,6 @@ import {
   RefreshCcw,
   SpellCheck,
   Waypoints,
-  LineChart as LineChartIcon,
-  BarChart2,
-  PieChartIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -85,6 +82,7 @@ import {
   Pie,
   Cell,
 } from 'recharts';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 const TopicFormSchema = z.object({
   task: z.enum(['Task 1', 'Task 2']),
@@ -93,7 +91,10 @@ const TopicFormSchema = z.object({
 });
 type TopicFormValues = z.infer<typeof TopicFormSchema>;
 
-type GeneratedTopic = GenerateChartTopicOutput | GenerateWritingTask1GeneralOutput | GenerateWritingTask2Output;
+type GeneratedTopic =
+  | GenerateChartTopicOutput
+  | GenerateWritingTask1GeneralOutput
+  | GenerateWritingTask2Output;
 
 const EssayFormSchema = z.object({
   essay: z.string().min(50, 'Your essay should be at least 50 words.'),
@@ -176,7 +177,8 @@ function WritingPractice() {
         } else {
           result = await generateWritingTask1General({ topic: data.topic });
         }
-      } else { // Task 2
+      } else {
+        // Task 2
         result = await generateWritingTask2({ topic: data.topic });
       }
 
@@ -285,8 +287,20 @@ function WritingPractice() {
       ]
     : [];
 
-  const renderGeneratedChart = () => {
-    if (!generatedTopic || !('chartData' in generatedTopic) || !generatedTopic.chartData) {
+  const renderGeneratedVisual = () => {
+    if (!generatedTopic) return null;
+
+    // Handle map or process diagram
+    if ('visualDescription' in generatedTopic && generatedTopic.visualDescription) {
+        return (
+            <div className="my-6 w-full rounded-md border p-4">
+                <div className="prose dark:prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: generatedTopic.visualDescription }} />
+            </div>
+        );
+    }
+
+    // Handle charts and tables
+    if (!('chartData' in generatedTopic) || !generatedTopic.chartData) {
       return null;
     }
 
@@ -295,69 +309,92 @@ function WritingPractice() {
 
     const chartProps = {
       data,
-      margin: { top: 5, right: 20, left: 20, bottom: 20 },
+      margin: { top: 20, right: 30, left: 20, bottom: 40 },
     };
 
     const RADIAN = Math.PI / 180;
     const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, index }: any) => {
-      const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
-      const x = cx + radius * Math.cos(-midAngle * RADIAN);
-      const y = cy + radius * Math.sin(-midAngle * RADIAN);
-      const value = data[index][dataKey as keyof typeof data[number]];
-      const name = data[index][categoryKey as keyof typeof data[number]];
-      
-      // Check if text will fit
-      const text = `${name} (${(percent * 100).toFixed(0)}%)`;
-      const textWidth = text.length * 6; // Approximate width
-      if (textWidth > (outerRadius - innerRadius)) return null;
+        const radius = innerRadius + (outerRadius - innerRadius) * 0.7;
+        const x = cx + radius * Math.cos(-midAngle * RADIAN);
+        const y = cy + radius * Math.sin(-midAngle * RADIAN);
+        const value = data[index][dataKey as keyof typeof data[number]];
+        const name = data[index][categoryKey as keyof typeof data[number]];
 
-      return (
-        <text x={x} y={y} fill="white" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central" fontSize="12">
-          {text}
-        </text>
-      );
+        if ((percent * 100) < 5) return null; // Don't render label if slice is too small
+
+        return (
+            <text x={x} y={y} fill="white" textAnchor="middle" dominantBaseline="central" fontSize="12">
+            {`${name} ${(percent * 100).toFixed(0)}%`}
+            </text>
+        );
     };
 
     const COLORS = ['#5DADE2', '#008080', '#2E86C1', '#17A589', '#85C1E9', '#48C9B0'];
 
+     if (type === 'table') {
+        const headers = data.length > 0 ? Object.keys(data[0]) : [];
+        return (
+            <div className="my-6 w-full rounded-md border">
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            {headers.map(header => <TableHead key={header} className="capitalize">{header}</TableHead>)}
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {data.map((row, rowIndex) => (
+                            <TableRow key={rowIndex}>
+                                {headers.map(header => (
+                                    <TableCell key={header}>{(row as any)[header]}</TableCell>
+                                ))}
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            </div>
+        )
+    }
+
     return (
       <div className="my-6 w-full rounded-md border p-4">
         <div className="h-96 w-full">
-            <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer width="100%" height="100%">
             {type === 'bar' ? (
-                <BarChart {...chartProps}>
+              <BarChart {...chartProps}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey={categoryKey} angle={-30} textAnchor="end" height={60} interval={0} label={{ value: xAxisLabel, position: 'insideBottom', offset: -15 }} />
-                <YAxis label={{ value: yAxisLabel, angle: -90, position: 'insideLeft' }} />
+                <YAxis label={{ value: yAxisLabel, angle: -90, position: 'insideLeft', offset: -5 }} />
                 <Tooltip />
-                <Legend />
-                <Bar dataKey={dataKey} fill="hsl(var(--primary))" />
-                </BarChart>
+                <Legend wrapperStyle={{ bottom: 0, left: 20 }} />
+                <Bar dataKey={dataKey} fill="hsl(var(--primary))">
+                    <LabelList dataKey={dataKey} position="top" />
+                </Bar>
+              </BarChart>
             ) : type === 'line' ? (
-                <LineChart {...chartProps}>
+              <LineChart {...chartProps}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey={categoryKey} angle={-30} textAnchor="end" height={60} interval={0} label={{ value: xAxisLabel, position: 'insideBottom', offset: -15 }} />
-                <YAxis label={{ value: yAxisLabel, angle: -90, position: 'insideLeft' }} />
+                <YAxis label={{ value: yAxisLabel, angle: -90, position: 'insideLeft', offset: -5 }} />
                 <Tooltip />
-                <Legend />
+                <Legend wrapperStyle={{ bottom: 0, left: 20 }}/>
                 <Line type="monotone" dataKey={dataKey} stroke="hsl(var(--primary))" activeDot={{ r: 8 }} />
-                </LineChart>
+              </LineChart>
             ) : type === 'pie' ? (
-                <PieChart>
-                <Pie data={data} dataKey={dataKey} nameKey={categoryKey} cx="50%" cy="50%" outerRadius={120} labelLine={false} label={renderCustomizedLabel} >
-                    {(data as any[]).map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
+              <PieChart>
+                <Pie data={data} dataKey={dataKey} nameKey={categoryKey} cx="50%" cy="50%" outerRadius={140} labelLine={false} label={renderCustomizedLabel}>
+                  {(data as any[]).map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
                 </Pie>
                 <Tooltip />
                 <Legend />
-                </PieChart>
+              </PieChart>
             ) : (
-                <div className="flex h-full items-center justify-center bg-muted text-muted-foreground">
-                    <p>Unsupported chart type: {type}</p>
-                </div>
+              <div className="flex h-full items-center justify-center bg-muted text-muted-foreground">
+                <p>Unsupported chart type: {type}</p>
+              </div>
             )}
-            </ResponsiveContainer>
+          </ResponsiveContainer>
         </div>
       </div>
     );
@@ -483,7 +520,7 @@ function WritingPractice() {
                   className="prose dark:prose-invert max-w-none"
                   dangerouslySetInnerHTML={{ __html: generatedTopic.topic }}
                 />
-                {renderGeneratedChart()}
+                {renderGeneratedVisual()}
                 <div
                   className="prose dark:prose-invert max-w-none rounded-md border bg-muted p-4 italic"
                   dangerouslySetInnerHTML={{

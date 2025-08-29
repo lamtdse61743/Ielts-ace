@@ -1,9 +1,9 @@
 
 'use server';
 /**
- * @fileOverview Generates IELTS Writing Task 1 (Academic) topics, including chart data.
+ * @fileOverview Generates IELTS Writing Task 1 (Academic) topics, including chart data, tables, or visual descriptions.
  *
- * - generateChartTopic - A function that generates a Task 1 Academic topic with chart data.
+ * - generateChartTopic - A function that generates a Task 1 Academic topic with a visual component.
  * - GenerateChartTopicInput - The input type for the function.
  * - GenerateChartTopicOutput - The return type for the function.
  */
@@ -22,7 +22,7 @@ const ChartDataPointSchema = z.object({
 });
 
 const ChartDataSchema = z.object({
-    type: z.enum(['bar', 'line', 'pie']).describe("The type of chart to represent the data. Can be 'bar', 'line', or 'pie'."),
+    type: z.enum(['bar', 'line', 'pie', 'table', 'mixed']).describe("The type of chart to represent the data."),
     data: z.array(ChartDataPointSchema).describe("An array of data objects for the chart. Each object must conform to the ChartDataPointSchema with a 'name' and a 'value'."),
     config: z.object({
         dataKey: z.string().describe("The key in the data objects that holds the numerical value. This must be 'value'."),
@@ -33,9 +33,11 @@ const ChartDataSchema = z.object({
 });
 
 const GenerateChartTopicOutputSchema = z.object({
-    topic: z.string().describe("The generated topic description for the chart or data. This should be formatted in HTML, and the entire prompt should be bold."),
+    topic: z.string().describe("The generated topic description for the visual. This should be formatted in HTML, and the entire prompt should be bold."),
     instructions: z.string().describe("Specific instructions for the task, formatted in HTML."),
-    chartData: ChartDataSchema.describe("Structured data for generating a visual chart. This should ONLY be generated for Task 1 Academic."),
+    chartData: ChartDataSchema.optional().describe("Structured data for generating a visual chart. Should be used for 'bar', 'line', 'pie', and 'table' types."),
+    visualDescription: z.string().optional().describe("A detailed HTML description for visual tasks like maps or process diagrams, where structured data is not applicable."),
+    taskType: z.enum(['bar', 'line', 'pie', 'table', 'map', 'process-diagram', 'mixed']).describe("The type of visual task generated.")
 });
 export type GenerateChartTopicOutput = z.infer<typeof GenerateChartTopicOutputSchema>;
 
@@ -52,24 +54,40 @@ const prompt = ai.definePrompt({
   output: {schema: GenerateChartTopicOutputSchema},
   prompt: `You are an expert IELTS exam creator. Your task is to generate a complete writing prompt for IELTS Writing Task 1 (Academic).
 
-This requires two parts:
-1.  A text description of the chart.
-2.  The structured JSON data for the chart itself.
+You must randomly choose to generate ONE of the following visual task types:
+1.  **Line Graph:** Show trends over time.
+2.  **Bar Chart:** Compare quantities between categories.
+3.  **Pie Chart:** Show percentages or proportions of a whole.
+4.  **Table:** Present data in rows and columns.
+5.  **Map:** Show changes in a place over time (e.g., before/after).
+6.  **Process Diagram:** Show how something works or is produced.
+7.  **Mixed Charts:** A combination of two types (e.g., a bar chart and a table).
 
 User-provided Topic (if any): {{{topic}}}
 
-Instructions:
-- You must randomly choose to generate data for ONE of the following chart types: 'bar', 'line', or 'pie'.
-- You must generate a 'topic' that accurately describes the data you are creating. The entire topic description must be bold (using <strong> tags).
-- The 'instructions' field should always be "Summarise the information by selecting and reporting the main features, and make comparisons where relevant. Write at least 150 words."
-- You must generate valid 'chartData'. 
-- The 'data' array inside 'chartData' must contain objects that follow the schema: {name: string, value: number}.
-- The 'config' object inside 'chartData' must set 'dataKey' to "value" and 'categoryKey' to "name".
+**Response Instructions:**
 
-Example of a valid output for a 'bar' chart:
+- **For 'bar', 'line', 'pie', 'table', or 'mixed' types:**
+    - You MUST generate structured JSON in the 'chartData' field.
+    - The 'topic' field MUST be a bold HTML string describing the visual.
+    - Set 'taskType' to the correct type (e.g., 'bar').
+    - Omit the 'visualDescription' field.
+
+- **For 'map' or 'process-diagram' types:**
+    - You MUST generate a detailed description of the visual in the 'visualDescription' field. This description should be formatted as HTML (e.g., using <p>, <ul>, <li>, <strong>) and act as the visual aid for the user.
+    - The 'topic' field MUST be a bold HTML string introducing the map or diagram.
+    - Set 'taskType' to the correct type (e.g., 'map').
+    - The 'chartData' field MUST be omitted.
+
+- **For all types:**
+    - The 'instructions' field should always be "Summarise the information by selecting and reporting the main features, and make comparisons where relevant. Write at least 150 words."
+    - If the user provides a topic, create a prompt related to it. If not, generate a random, high-quality topic appropriate for an IELTS exam.
+
+**Example for a Bar Chart:**
 {
   "topic": "<strong>The chart below shows the percentage of the population in four European countries who were aged 65 and over in 2020.</strong>",
   "instructions": "Summarise the information by selecting and reporting the main features, and make comparisons where relevant. Write at least 150 words.",
+  "taskType": "bar",
   "chartData": {
     "type": "bar",
     "data": [
@@ -87,7 +105,13 @@ Example of a valid output for a 'bar' chart:
   }
 }
 
-If the user provides a topic, create a prompt related to it. If not, generate a random, high-quality topic and data appropriate for an IELTS exam.
+**Example for a Map:**
+{
+  "topic": "<strong>The two maps below show the changes to an industrial area called Chorleywood between 1995 and the present day.</strong>",
+  "instructions": "Summarise the information by selecting and reporting the main features, and make comparisons where relevant. Write at least 150 words.",
+  "taskType": "map",
+  "visualDescription": "<h3>Chorleywood - 1995</h3><p>The map shows a large industrial area with several factories to the north. A main road runs through the center. To the south, there is a large area of undeveloped farmland.</p><h3>Chorleywood - Present Day</h3><p>The factories have been demolished and replaced with a new housing estate. A new school has been constructed next to the housing. The main road has been pedestrianized, and the farmland has been converted into a large park with a lake.</p>"
+}
 
 Your entire response must be in a single JSON object that strictly follows the output schema.
 `,
@@ -104,4 +128,3 @@ const generateChartTopicFlow = ai.defineFlow(
     return output!;
   }
 );
-
