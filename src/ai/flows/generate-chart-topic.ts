@@ -44,7 +44,7 @@ User-provided Topic (if any): {{{topic}}}
 **CRITICAL REQUIREMENTS:**
 - The 'rawData' field MUST be a string containing a valid JSON object.
 - The JSON object inside 'rawData' MUST have a 'type' property set to "line".
-- Generate exactly 3-4 different categories over 5-7 time points.
+- Generate a random number of categories between 3 and 5, over 5-7 time points.
 - **Data MUST be realistic and varied.** The lines should not all go in the same direction. Some should increase, some decrease, and some should fluctuate. The lines MUST cross at least once.
 
 **Response Instructions:**
@@ -59,17 +59,17 @@ User-provided Topic (if any): {{{topic}}}
 {
   "type": "line",
   "data": [
-    { "Year": "2010", "Beef": 1.5, "Chicken": 2.2, "Pork": 1.8 },
-    { "Year": "2012", "Beef": 1.6, "Chicken": 2.0, "Pork": 2.1 },
-    { "Year": "2014", "Beef": 1.2, "Chicken": 2.8, "Pork": 1.7 },
-    { "Year": "2016", "Beef": 1.4, "Chicken": 2.6, "Pork": 2.3 },
-    { "Year": "2018", "Beef": 1.0, "Chicken": 3.5, "Pork": 1.5 },
-    { "Year": "2020", "Beef": 1.1, "Chicken": 3.2, "Pork": 1.9 }
+    { "Year": "2010", "Beef": 1.5, "Chicken": 2.2, "Pork": 1.8, "Lamb": 0.8 },
+    { "Year": "2012", "Beef": 1.6, "Chicken": 2.0, "Pork": 2.1, "Lamb": 0.9 },
+    { "Year": "2014", "Beef": 1.2, "Chicken": 2.8, "Pork": 1.7, "Lamb": 0.7 },
+    { "Year": "2016", "Beef": 1.4, "Chicken": 2.6, "Pork": 2.3, "Lamb": 1.1 },
+    { "Year": "2018", "Beef": 1.0, "Chicken": 3.5, "Pork": 1.5, "Lamb": 1.0 },
+    { "Year": "2020", "Beef": 1.1, "Chicken": 3.2, "Pork": 1.9, "Lamb": 1.2 }
   ],
   "config": {
     "dataKey": "Beef",
     "categoryKey": "Year",
-    "series": ["Beef", "Chicken", "Pork"],
+    "series": ["Beef", "Chicken", "Pork", "Lamb"],
     "xAxisLabel": "Year",
     "yAxisLabel": "Consumption (kg per person)"
   }
@@ -91,4 +91,3 @@ const generateChartTopicFlow = ai.defineFlow(
     return output!;
   }
 );
-

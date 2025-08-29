@@ -332,7 +332,7 @@ function WritingPractice() {
       margin: { top: 20, right: 30, left: 20, bottom: 40 },
     };
 
-    const COLORS = ['#5DADE2', '#008080', '#2E86C1', '#17A589', '#85C1E9', '#48C9B0'];
+    const COLORS = ["#3b82f6", "#ef4444", "#8b5cf6", "#10b981", "#f97316"];
 
     const RADIAN = Math.PI / 180;
     const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, index }: any) => {
