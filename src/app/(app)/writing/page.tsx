@@ -590,7 +590,7 @@ function WritingPractice() {
                     </AccordionItem>
                     <AccordionItem value="taskResponse">
                       <AccordionTrigger className="text-lg">
-                        <div className="flex w-full items-center justify-between pr-2">
+                        <div className="flex w-full flex-wrap items-center justify-between gap-2 pr-2">
                           <div className="flex items-center gap-2">
                             <MessageSquareQuote className="size-5 text-primary" />{' '}
                             {analyzedEssay.task === 'Task 1'
@@ -614,7 +614,7 @@ function WritingPractice() {
                     </AccordionItem>
                     <AccordionItem value="coherence">
                       <AccordionTrigger className="text-lg">
-                        <div className="flex w-full items-center justify-between pr-2">
+                        <div className="flex w-full flex-wrap items-center justify-between gap-2 pr-2">
                           <div className="flex items-center gap-2">
                             <Waypoints className="size-5 text-primary" />{' '}
                             Coherence & Cohesion
@@ -638,7 +638,7 @@ function WritingPractice() {
                     </AccordionItem>
                     <AccordionItem value="lexical">
                       <AccordionTrigger className="text-lg">
-                        <div className="flex w-full items-center justify-between pr-2">
+                        <div className="flex w-full flex-wrap items-center justify-between gap-2 pr-2">
                           <div className="flex items-center gap-2">
                             <FileText className="size-5 text-primary" />{' '}
                             Lexical Resource
@@ -660,7 +660,7 @@ function WritingPractice() {
                     </AccordionItem>
                     <AccordionItem value="grammar">
                       <AccordionTrigger className="text-lg">
-                        <div className="flex w-full items-center justify-between pr-2">
+                        <div className="flex w-full flex-wrap items-center justify-between gap-2 pr-2">
                           <div className="flex items-center gap-2">
                             <SpellCheck className="size-5 text-primary" />{' '}
                             Grammatical Range & Accuracy
