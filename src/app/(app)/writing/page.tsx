@@ -12,9 +12,17 @@ import {
   type EssayFeedbackOutput,
 } from '@/ai/flows/essay-feedback';
 import {
-  generateWritingTopic,
-  type GenerateWritingTopicOutput,
-} from '@/ai/flows/generate-writing-topic';
+  generateWritingTask1Academic,
+  type GenerateWritingTask1AcademicOutput,
+} from '@/ai/flows/generate-writing-task1-academic';
+import {
+  generateWritingTask1General,
+  type GenerateWritingTask1GeneralOutput,
+} from '@/ai/flows/generate-writing-task1-general';
+import {
+  generateWritingTask2,
+  type GenerateWritingTask2Output,
+} from '@/ai/flows/generate-writing-task2';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -85,6 +93,8 @@ const TopicFormSchema = z.object({
 });
 type TopicFormValues = z.infer<typeof TopicFormSchema>;
 
+type GeneratedTopic = GenerateWritingTask1AcademicOutput | GenerateWritingTask1GeneralOutput | GenerateWritingTask2Output;
+
 const EssayFormSchema = z.object({
   essay: z.string().min(50, 'Your essay should be at least 50 words.'),
 });
@@ -101,7 +111,7 @@ function WritingPractice() {
   const [isLoading, setIsLoading] = useState(false);
   const [isFeedbackLoading, setIsFeedbackLoading] = useState(false);
   const [generatedTopic, setGeneratedTopic] =
-    useState<GenerateWritingTopicOutput | null>(null);
+    useState<GeneratedTopic | null>(null);
   const [analyzedEssay, setAnalyzedEssay] = useState<AnalyzedEssay | null>(
     null
   );
@@ -159,7 +169,17 @@ function WritingPractice() {
     setAnalyzedEssay(null);
     essayForm.reset();
     try {
-      const result = await generateWritingTopic(data);
+      let result: GeneratedTopic | null = null;
+      if (data.task === 'Task 1') {
+        if (data.trainingType === 'Academic') {
+          result = await generateWritingTask1Academic({ topic: data.topic });
+        } else {
+          result = await generateWritingTask1General({ topic: data.topic });
+        }
+      } else { // Task 2
+        result = await generateWritingTask2({ topic: data.topic });
+      }
+
       if (!result || !result.topic) {
         throw new Error('The generated topic is invalid or empty.');
       }
@@ -266,7 +286,7 @@ function WritingPractice() {
     : [];
 
   const renderGeneratedChart = () => {
-    if (!generatedTopic?.chartData) {
+    if (!generatedTopic || !('chartData' in generatedTopic) || !generatedTopic.chartData) {
       return null;
     }
 
