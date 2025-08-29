@@ -84,7 +84,7 @@ User's Writing:
 
 Please evaluate the writing against the appropriate IELTS band descriptors below. For each of the four criteria, provide a band score and specific, constructive feedback formatted as HTML. Your feedback should explain WHY the user received that band score, referencing both the user's writing and the band descriptors. Also, list specific spelling and grammatical errors.
 
-{{#if (eq task "Task 1")}}
+{{#if isTask1}}
 **IELTS GENERAL TRAINING WRITING TASK 1: Marking Criteria**
 
 *   **Task Achievement:** In Task 1, you must write a letter that addresses the given situation and has a clear purpose. You need to be concise, provide relevant and accurate content, and maintain an appropriate tone for the letter.
