@@ -30,7 +30,7 @@ const ChartDataSchema = z.object({
     config: z.object({
         dataKey: z.string().describe("The key in the data objects that holds the primary numerical value. This must be 'value' for single-series charts."),
         categoryKey: z.string().describe("The key in the data objects that holds the category label. This must be 'name' for single-series charts."),
-        series: z.array(z.string()).optional().describe("For multi-series charts, an array of strings representing the names of the different data series (lines)."),
+        series: z.array(z.string()).describe("For multi-series charts, an array of strings representing the names of the different data series (lines)."),
         xAxisLabel: z.string().optional().describe("The label for the X-axis of the chart."),
         yAxisLabel: z.string().optional().describe("The label for the Y-axis of the chart."),
     }).describe("Configuration for rendering the chart.")
@@ -74,7 +74,7 @@ User-provided Topic (if any): {{{topic}}}
     - In the 'chartData.config' object:
         - 'categoryKey' MUST be the name of the property representing the time point (e.g., "Year").
         - 'series' MUST be an array of strings containing the names of the 3-4 categories.
-        - 'dataKey' can be omitted or set to the name of one of the series.
+        - 'dataKey' MUST be the name of one of the series.
     - Omit the 'visualDescription' and 'imageUrl' fields.
 
 - **If taskType is 'bar', 'pie', or 'table':**
@@ -82,7 +82,7 @@ User-provided Topic (if any): {{{topic}}}
     - The 'topic' field MUST be a bold HTML string describing the visual.
     - Set 'taskType' to the one provided in the input (e.g., 'bar').
     - For the data, each object must have a 'name' property for the category and a 'value' property for the number.
-    - In the config, 'dataKey' must be 'value' and 'categoryKey' must be 'name'.
+    - In the config, 'dataKey' must be 'value' and 'categoryKey' must be 'name'. 'series' must contain the 'value' dataKey.
     - Omit the 'visualDescription' and 'imageUrl' fields.
 
 - **If taskType is 'map' or 'process-diagram':**
