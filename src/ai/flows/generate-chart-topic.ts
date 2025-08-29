@@ -16,6 +16,10 @@ const GenerateChartTopicInputSchema = z.object({
 });
 export type GenerateChartTopicInput = z.infer<typeof GenerateChartTopicInputSchema>;
 
+const PromptInputSchema = GenerateChartTopicInputSchema.extend({
+    taskType: z.string().describe("The type of visual task to generate."),
+});
+
 const ChartDataPointSchema = z.object({
     name: z.string().describe("The label for a data point (e.g., a year, a country). This will be the category."),
     value: z.number().describe("The numerical value for a data point."),
@@ -50,34 +54,33 @@ export async function generateChartTopic(
 
 const prompt = ai.definePrompt({
   name: 'generateChartTopicPrompt',
-  input: {schema: GenerateChartTopicInputSchema},
+  input: {schema: PromptInputSchema},
   output: {schema: GenerateChartTopicOutputSchema},
-  prompt: `You are an expert IELTS exam creator. Your task is to generate a complete writing prompt for IELTS Writing Task 1 (Academic).
+  prompt: `You are an expert IELTS exam creator. Your task is to generate a complete writing prompt for IELTS Writing Task 1 (Academic) based on the specified task type.
 
-You must randomly choose to generate ONE of the following visual task types:
-1.  **Line Graph:** Show trends over time.
-2.  **Bar Chart:** Compare quantities between categories.
-3.  **Pie Chart:** Show percentages or proportions of a whole.
-4.  **Table:** Present data in rows and columns.
-5.  **Map:** Show changes in a place over time (e.g., before/after).
-6.  **Process Diagram:** Show how something works or is produced.
-7.  **Mixed Charts:** A combination of two types (e.g., a bar chart and a table).
-
+Task Type to Generate: {{{taskType}}}
 User-provided Topic (if any): {{{topic}}}
 
 **Response Instructions:**
 
-- **For 'bar', 'line', 'pie', 'table', or 'mixed' types:**
+- **If taskType is 'bar', 'line', 'pie', or 'table':**
     - You MUST generate structured JSON in the 'chartData' field.
     - The 'topic' field MUST be a bold HTML string describing the visual.
-    - Set 'taskType' to the correct type (e.g., 'bar').
+    - Set 'taskType' to the one provided in the input (e.g., 'bar').
     - Omit the 'visualDescription' field.
+    - For the data, the 'name' property should be the category and the 'value' property should be the number.
+    - In the config, \`dataKey\` must be 'value' and \`categoryKey\` must be 'name'.
 
-- **For 'map' or 'process-diagram' types:**
+- **If taskType is 'map' or 'process-diagram':**
     - You MUST generate a detailed description of the visual in the 'visualDescription' field. This description should be formatted as HTML (e.g., using <p>, <ul>, <li>, <strong>) and act as the visual aid for the user.
     - The 'topic' field MUST be a bold HTML string introducing the map or diagram.
-    - Set 'taskType' to the correct type (e.g., 'map').
+    - Set 'taskType' to the one provided in the input (e.g., 'map').
     - The 'chartData' field MUST be omitted.
+    
+- **If taskType is 'mixed':**
+    - You MUST generate structured JSON in the 'chartData' field for one part of the visual (e.g., a bar chart) and a 'visualDescription' for the other part (e.g., a supplementary table described in HTML).
+    - The 'topic' field MUST be a bold HTML string describing both visuals.
+    - Set 'taskType' to 'mixed'.
 
 - **For all types:**
     - The 'instructions' field should always be "Summarise the information by selecting and reporting the main features, and make comparisons where relevant. Write at least 150 words."
@@ -124,7 +127,10 @@ const generateChartTopicFlow = ai.defineFlow(
     outputSchema: GenerateChartTopicOutputSchema,
   },
   async input => {
-    const {output} = await prompt(input);
+    const taskTypes = ['bar', 'line', 'pie', 'table', 'map', 'process-diagram', 'mixed'];
+    const randomTaskType = taskTypes[Math.floor(Math.random() * taskTypes.length)];
+
+    const {output} = await prompt({...input, taskType: randomTaskType});
     return output!;
   }
 );
