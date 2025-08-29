@@ -129,7 +129,7 @@ const generateChartTopicFlow = ai.defineFlow(
 );
 
 // Helper function to validate the response structure
-export function validateChartResponse(response: GenerateChartTopicOutput): GenerateChartTopicOutput {
+export async function validateChartResponse(response: GenerateChartTopicOutput): Promise<GenerateChartTopicOutput> {
   // Ensure required values are set correctly
   if (response.chartData) {
     response.chartData.type = 'line';
