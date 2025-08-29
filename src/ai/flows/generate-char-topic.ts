@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview Ultra-minimal version for Google AI compatibility
