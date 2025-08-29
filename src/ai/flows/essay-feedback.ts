@@ -90,8 +90,6 @@ Please evaluate the writing against the appropriate IELTS band descriptors below
 *   **Coherence and Cohesion:** This criterion assesses how well your information is organized and connected. A well-organized response uses appropriate paragraphing and linking devices to make the message clear and easy to follow.
 *   **Lexical Resource (Vocabulary):** You will be marked on your ability to use a range of appropriate vocabulary, including collocations. The number of errors in spelling and word formation also impacts your score.
 *   **Grammatical Range and Accuracy:** This criterion looks at your command of grammar and punctuation. You should aim to use a variety of grammatical structures and tenses accurately and manage punctuation effectively to avoid errors that impede communication.
-
-Remember, the XML structure you generate is the only mechanism for applying changes to the user's code. Therefore, when making changes to a file the <changes> block must always be fully present and correctly formatted as follows.
 {{else}}
 **IELTS WRITING TASK 2: Band Descriptors**
 
