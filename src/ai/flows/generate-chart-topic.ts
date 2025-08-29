@@ -20,7 +20,8 @@ export type GenerateChartTopicInput = z.infer<typeof GenerateChartTopicInputSche
 const MultiSeriesChartDataPointSchema = z.object({}).catchall(z.union([z.string(), z.number()]));
 
 const ChartDataSchema = z.object({
-    type: z.string().describe("The type of chart to represent the data (must be 'line')."),
+    // FIXED: Remove .describe() with 'must be' constraints that create const fields
+    type: z.string().describe("The type of chart to represent the data."),
     data: z.array(MultiSeriesChartDataPointSchema).describe("An array of data objects for the chart. Each object represents a point on the category axis (e.g., a year) and contains key-value pairs for each series."),
     config: z.object({
         dataKey: z.string().describe("The key in the data objects that holds the primary numerical value."),
@@ -35,10 +36,10 @@ const GenerateChartTopicOutputSchema = z.object({
     topic: z.string().describe("The generated topic description for the visual. This should be formatted in HTML, and the entire prompt should be bold."),
     instructions: z.string().describe("Specific instructions for the task, formatted in HTML."),
     chartData: ChartDataSchema.describe("Structured data for generating a visual chart."),
-    taskType: z.string().describe("The type of visual task generated (must be 'line').")
+    // FIXED: Remove .describe() with 'must be' constraints that create const fields
+    taskType: z.string().describe("The type of visual task generated.")
 });
 export type GenerateChartTopicOutput = z.infer<typeof GenerateChartTopicOutputSchema>;
-
 
 export async function generateChartTopic(
   input: GenerateChartTopicInput
@@ -54,18 +55,25 @@ const prompt = ai.definePrompt({
 
 User-provided Topic (if any): {{{topic}}}
 
+**CRITICAL REQUIREMENTS:**
+- chartData.type MUST be exactly "line"
+- taskType MUST be exactly "line"
+- Generate exactly 3-4 different categories over 5-7 time points
+- All data values must be realistic numbers
+
 **Response Instructions:**
 
 - You MUST generate a line chart that compares 3 to 4 different categories over a period of time (e.g., 5-7 time points).
 - You MUST generate structured JSON in the 'chartData' field.
 - The 'topic' field MUST be a bold HTML string describing the visual.
-- Set 'taskType' to 'line'.
+- Set 'taskType' to exactly "line".
+- Set 'chartData.type' to exactly "line".
 - In the 'chartData.data' array, each object should represent a time point (e.g., a year). The object's 'categoryKey' should be the time point, and the other keys should be the names of the categories being measured, with their corresponding numerical values.
 - In the 'chartData.config' object:
     - 'categoryKey' MUST be the name of the property representing the time point (e.g., "Year").
     - 'series' MUST be an array of strings containing the names of the 3-4 categories.
     - 'dataKey' MUST be the name of one of the series.
-- The 'instructions' field should always be "Summarise the information by selecting and reporting the main features, and make comparisons where relevant. Write at least 150 words."
+- The 'instructions' field should always be exactly "Summarise the information by selecting and reporting the main features, and make comparisons where relevant. Write at least 150 words."
 - If the user provides a topic, create a prompt related to it. If not, generate a random, high-quality topic appropriate for an IELTS exam.
 
 **Example for a Multi-Line Chart:**
@@ -103,6 +111,30 @@ const generateChartTopicFlow = ai.defineFlow(
   },
   async input => {
     const {output} = await prompt(input);
+    
+    // Post-process validation to ensure correct values
+    if (output) {
+      // Ensure correct chart type
+      if (output.chartData?.type !== 'line') {
+        output.chartData.type = 'line';
+      }
+      // Ensure correct task type  
+      if (output.taskType !== 'line') {
+        output.taskType = 'line';
+      }
+    }
+    
     return output!;
   }
 );
+
+// Helper function to validate the response structure
+export function validateChartResponse(response: GenerateChartTopicOutput): GenerateChartTopicOutput {
+  // Ensure required values are set correctly
+  if (response.chartData) {
+    response.chartData.type = 'line';
+  }
+  response.taskType = 'line';
+  
+  return response;
+}
