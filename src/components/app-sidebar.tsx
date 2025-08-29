@@ -2,7 +2,7 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import {
   Sidebar,
   SidebarHeader,
@@ -18,6 +18,8 @@ import { Bookmark, Notebook, PenSquare, Home, Headphones, Mic } from 'lucide-rea
 
 export function AppSidebar() {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const trainingType = searchParams.get('type') || 'Academic';
 
   return (
     <Sidebar>
@@ -47,7 +49,7 @@ export function AppSidebar() {
               isActive={pathname.startsWith('/reading')}
               tooltip="Reading"
             >
-              <Link href="/reading">
+              <Link href={`/reading?type=${trainingType}`}>
                 <Notebook />
                 <span>Reading</span>
               </Link>
@@ -72,7 +74,7 @@ export function AppSidebar() {
               isActive={pathname.startsWith('/writing')}
               tooltip="Writing"
             >
-              <Link href="/writing">
+              <Link href={`/writing?type=${trainingType}`}>
                 <PenSquare />
                 <span>Writing</span>
               </Link>
