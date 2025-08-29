@@ -1,9 +1,9 @@
 
 'use server';
 /**
- * @fileOverview Generates IELTS Writing Task 1 (Academic) topics, focusing on multi-line charts.
+ * @fileOverview Generates IELTS Writing Task 1 (Academic) topics, focusing on bar charts.
  *
- * - generateChartTopic - A function that generates a Task 1 Academic topic with a line chart.
+ * - generateChartTopic - A function that generates a Task 1 Academic topic with a bar chart.
  * - GenerateChartTopicInput - The input type for the function.
  * - GenerateChartTopicOutput - The return type for the function.
  */
@@ -37,7 +37,7 @@ const prompt = ai.definePrompt({
   name: 'generateChartTopicPrompt',
   input: {schema: GenerateChartTopicInputSchema},
   output: {schema: GenerateChartTopicOutputSchema},
-  prompt: `You are an expert IELTS exam creator. Your task is to generate a complete writing prompt for IELTS Writing Task 1 (Academic) that involves a multi-line chart with realistic, fluctuating data.
+  prompt: `You are an expert IELTS exam creator. Your task is to generate a complete writing prompt for IELTS Writing Task 1 (Academic) that involves a bar chart comparing several categories.
 
 {{#if topic}}
 User-provided Topic: {{{topic}}}
@@ -48,35 +48,35 @@ Please generate a random, high-quality topic appropriate for an IELTS exam.
 
 **CRITICAL REQUIREMENTS:**
 - The 'rawData' field MUST be a string containing a valid JSON object.
-- The JSON object inside 'rawData' MUST have a 'type' property set to "line".
-- The topic must be varied. Do NOT repeatedly use the same topic. Choose from a diverse range of subjects like economics (e.g., imports/exports), environment (e.g., recycling rates), social trends (e.g., population demographics), or technology (e.g., internet usage).
-- The prompt MUST be specific. Invent a realistic context, including a specific country, city, or organization (e.g., "in the UK," "in the city of Sydney," "for the company TechCorp").
-- Generate a random number of categories between 3 and 5, over 5-7 time points.
-- **Data MUST be realistic and varied.** The lines should not all go in the same direction. Some should increase, some decrease, and some should fluctuate. The lines MUST cross at least once.
+- The JSON object inside 'rawData' MUST have a 'type' property set to "bar".
+- The topic must be varied. Do NOT repeatedly use the same topic. Choose from a diverse range of subjects like economics (e.g., average salaries for different professions), environment (e.g., waste recycling rates by material), social trends (e.g., preferred holiday destinations), or technology (e.g., percentage of people using different social media platforms).
+- The prompt MUST be specific and compare different items in a single category. Invent a realistic context, including a specific country, city, or year (e.g., "in the UK in 2022," "in the city of Sydney," "for the company TechCorp").
+- Generate a random number of categories to compare, between 4 and 6.
+- Data MUST be realistic.
 
 **Response Instructions:**
 - You MUST generate a response where the 'rawData' field is a stringified JSON object.
 - The 'topic' field MUST be a bold HTML string describing the visual.
-- Set 'taskType' to exactly "line".
+- Set 'taskType' to exactly "bar".
 - The 'instructions' field should always be exactly "Summarise the information by selecting and reporting the main features, and make comparisons where relevant. Write at least 150 words."
 
-**Example for the 'rawData' string contents (Note the fluctuating data and specific context):**
+**Example for the 'rawData' string contents (Note the single data point per category):**
 \`\`\`json
 {
-  "type": "line",
+  "type": "bar",
   "data": [
-    { "Year": "2015", "Cars": 45, "Bicycles": 60, "Public Transport": 55 },
-    { "Year": "2017", "Cars": 42, "Bicycles": 65, "Public Transport": 58 },
-    { "Year": "2019", "Cars": 48, "Bicycles": 62, "Public Transport": 65 },
-    { "Year": "2021", "Cars": 55, "Bicycles": 58, "Public Transport": 60 },
-    { "Year": "2023", "Cars": 50, "Bicycles": 70, "Public Transport": 55 }
+    { "Profession": "Teachers", "Salary": 45000 },
+    { "Profession": "Doctors", "Salary": 75000 },
+    { "Profession": "Engineers", "Salary": 68000 },
+    { "Profession": "Nurses", "Salary": 52000 },
+    { "Profession": "Lawyers", "Salary": 82000 }
   ],
   "config": {
-    "dataKey": "Cars",
-    "categoryKey": "Year",
-    "series": ["Cars", "Bicycles", "Public Transport"],
-    "xAxisLabel": "Year",
-    "yAxisLabel": "Percentage of Commuters"
+    "dataKey": "Salary",
+    "categoryKey": "Profession",
+    "series": ["Salary"],
+    "xAxisLabel": "Profession",
+    "yAxisLabel": "Average Annual Salary (USD)"
   }
 }
 \`\`\`
