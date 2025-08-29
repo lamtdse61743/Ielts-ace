@@ -26,7 +26,8 @@ const ChartDataPointSchema = z.object({
     value: z.number().describe("The numerical value for a data point."),
 });
 
-const MultiSeriesChartDataPointSchema = z.record(z.union([z.string(), z.number()]));
+const MultiSeriesChartDataPointSchema = z.object({}).catchall(z.union([z.string(), z.number()]));
+
 
 const ChartDataSchema = z.object({
     type: z.enum(['bar', 'line', 'pie', 'table', 'mixed']).describe("The type of chart to represent the data."),
@@ -76,7 +77,7 @@ User-provided Topic (if any): {{{topic}}}
     - Set 'taskType' to 'line'.
     - In the 'chartData.data' array, each object should represent a time point (e.g., a year). The object's 'categoryKey' should be the time point, and the other keys should be the names of the categories being measured, with their corresponding numerical values.
     - In the 'chartData.config' object:
-        - 'categoryKey' MUST be the name of the property representing the time point (e.g., "year").
+        - 'categoryKey' MUST be the name of the property representing the time point (e.g., "Year").
         - 'series' MUST be an array of strings containing the names of the 3-4 categories.
         - 'dataKey' can be omitted or set to the name of one of the series.
     - Omit the 'visualDescription' and 'imageUrl' fields.
