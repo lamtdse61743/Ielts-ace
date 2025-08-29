@@ -33,7 +33,7 @@ const ChartDataSchema = z.object({
 const GenerateWritingTopicOutputSchema = z.object({
     topic: z.string().describe("The generated essay topic or question. This should be formatted in HTML. For Task 1, this should describe the chart or data. For Task 2, this is the essay prompt. For Task 1 and Task 2, the entire prompt should be bold."),
     instructions: z.string().describe("Specific instructions for the task, formatted in HTML. For example, 'Summarise the information by selecting and reporting the main features, and make comparisons where relevant' for Task 1, or 'Give reasons for your answer and include any relevant examples from your own knowledge or experience.' for Task 2."),
-    chartData: ChartDataSchema.optional().describe("For Task 1 Academic, this field contains the structured data needed to render a chart."),
+    chartData: ChartDataSchema.optional().describe("For Task 1 Academic ONLY. This field contains the structured data needed to render a chart. Do NOT generate this for Task 2 or Task 1 General Training."),
 });
 export type GenerateWritingTopicOutput = z.infer<typeof GenerateWritingTopicOutputSchema>;
 
@@ -55,31 +55,27 @@ Training Type: {{{trainingType}}}
 User-provided Topic (if any): {{{topic}}}
 
 Instructions:
-- For Task 1 (Academic): 
+- If the Task is 'Task 1' AND the Training Type is 'Academic':
   - Generate a description of a chart, graph, table, or diagram. The topic should be suitable for data visualization (e.g., population trends, economic data, process diagrams). The entire topic description must be bold (using <strong> tags).
   - You MUST generate structured JSON data for a chart in the 'chartData' field. The chart can be a 'bar', 'line', or 'pie' chart.
   - The 'chartData' JSON must include 'type', 'data', and 'config' properties. 'config' must have 'dataKey' and 'categoryKey'.
   - The 'data' array MUST contain objects with keys that directly match the 'dataKey' and 'categoryKey' in the config. For example, if config is {"dataKey": "expenditure", "categoryKey": "country"}, the data array should look like: [{"country": "UK", "expenditure": 500}, {"country": "USA", "expenditure": 750}]. Do NOT just return empty objects or objects with placeholder values. The data must be meaningful.
-- For Task 1 (General Training): 
+  - The instruction should be "Summarise the information by selecting and reporting the main features, and make comparisons where relevant. Write at least 150 words."
+- If the Task is 'Task 1' AND the Training Type is 'General Training': 
   - Generate a situation for a letter. The topic should be a common, everyday scenario requiring a formal, semi-formal, or informal letter. The generated 'topic' text must be formatted as HTML with the entire scenario in bold (using <strong> tags). 
-  - Please ensure variety in the prompts. Generate scenarios such as:
-    - Writing to a friend or family member about a recent event (e.g., a holiday, a new job).
-    - Requesting information from a company or organization (e.g., about a course, a service, a product).
-    - Making a complaint (e.g., about a faulty product, poor service, a problem with accommodation).
-    - Applying for something (e.g., a part-time job, membership in a club, permission to do something).
-    - Explaining a situation or problem to someone (e.g., a landlord, a neighbor, a manager).
   - The instruction should be "Write at least 150 words. You do NOT need to write any addresses. Begin your letter as follows: Dear ...,"
-- For Task 2 (Academic & General Training): 
+  - Do NOT generate a 'chartData' field.
+- If the Task is 'Task 2': 
   - Generate an essay question that requires a discursive response. The topic should be of general interest and allow for discussion of different viewpoints. The instruction should be "Write at least 250 words. Give reasons for your answer and include any relevant examples from your own knowledge or experience."
-- For Task 2, you must randomly pick one of the following essay types to generate the question:
-  1. Opinion Essay (Agree/Disagree): The user must state whether they agree, disagree, or partially agree with a statement. Example: "Some people think that university education should be free for everyone. To what extent do you agree or disagree?"
-  2. Discussion Essay (Discuss Both Views): The user must discuss two perspectives and give their own opinion. Example: "Some people believe that technology has made our lives more complicated, while others think it has made life easier. Discuss both views and give your own opinion."
-  3. Problem/Solution Essay: The user must identify problems and suggest solutions. Example: "Many cities around the world are facing traffic congestion. What are the main problems, and what solutions can be suggested to deal with this issue?"
-  4. Advantages/Disadvantages Essay: The user must present the benefits and drawbacks of a given idea or development. Example: "In recent years, more people are choosing to work from home. What are the advantages and disadvantages of this trend?"
-  5. Double Question Essay (Direct Question): The user will be asked two different questions about the same topic. Example: "Nowadays, many people prefer to shop online rather than in physical stores. Why is this the case? Do you think this is a positive or negative development?"
-
-- For Task 2, format the output 'topic' as HTML. Both the introductory statement and the question must be bold. The introductory statement should be in a <p> tag with a <strong> tag inside it. The question itself should be in a separate <p> tag below it, also with a <strong> tag inside it.
-- Example HTML format for Task 2 topic:
+  - Do NOT generate a 'chartData' field.
+  - You must randomly pick one of the following essay types to generate the question:
+    1. Opinion Essay (Agree/Disagree): The user must state whether they agree, disagree, or partially agree with a statement. Example: "Some people think that university education should be free for everyone. To what extent do you agree or disagree?"
+    2. Discussion Essay (Discuss Both Views): The user must discuss two perspectives and give their own opinion. Example: "Some people believe that technology has made our lives more complicated, while others think it has made life easier. Discuss both views and give your own opinion."
+    3. Problem/Solution Essay: The user must identify problems and suggest solutions. Example: "Many cities around the world are facing traffic congestion. What are the main problems, and what solutions can be suggested to deal with this issue?"
+    4. Advantages/Disadvantages Essay: The user must present the benefits and drawbacks of a given idea or development. Example: "In recent years, more people are choosing to work from home. What are the advantages and disadvantages of this trend?"
+    5. Double Question Essay (Direct Question): The user will be asked two different questions about the same topic. Example: "Nowadays, many people prefer to shop online rather than in physical stores. Why is this the case? Do you think this is a positive or negative development?"
+  - Format the output 'topic' as HTML. Both the introductory statement and the question must be bold. The introductory statement should be in a <p> tag with a <strong> tag inside it. The question itself should be in a separate <p> tag below it, also with a <strong> tag inside it.
+  - Example HTML format for Task 2 topic:
 <p><strong>The increasing use of Artificial Intelligence (AI) in various aspects of our daily lives, from smart devices to automated services, is a significant technological development.</strong></p><p><strong>What are the advantages and disadvantages of this trend?</strong></p>
 
 If the user provides a topic, create a prompt related to it. If not, generate a random, high-quality topic appropriate for an IELTS exam.
