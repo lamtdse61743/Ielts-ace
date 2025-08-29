@@ -44,7 +44,13 @@ User-provided Topic (if any): {{{topic}}}
 
 Instructions:
 - For Task 1 (Academic): Generate a description of a chart, graph, table, or diagram. The topic should be suitable for data visualization (e.g., population trends, economic data, process diagrams). The instruction should be "Summarise the information by selecting and reporting the main features, and make comparisons where relevant. Write at least 150 words."
-- For Task 1 (General Training): Generate a situation for a letter. The topic should be a common, everyday scenario requiring a formal or semi-formal letter (e.g., complaining about a product, requesting information, applying for a part-time job). The instruction should be "Write at least 150 words. You do NOT need to write any addresses. Begin your letter as follows: Dear ...,"
+- For Task 1 (General Training): Generate a situation for a letter. The topic should be a common, everyday scenario requiring a formal, semi-formal, or informal letter. Please ensure variety in the prompts. Generate scenarios such as:
+    - Writing to a friend or family member about a recent event (e.g., a holiday, a new job).
+    - Requesting information from a company or organization (e.g., about a course, a service, a product).
+    - Making a complaint (e.g., about a faulty product, poor service, a problem with accommodation).
+    - Applying for something (e.g., a part-time job, membership in a club, permission to do something).
+    - Explaining a situation or problem to someone (e.g., a landlord, a neighbor, a manager).
+  The instruction should be "Write at least 150 words. You do NOT need to write any addresses. Begin your letter as follows: Dear ...,"
 - For Task 2 (Academic & General Training): Generate an essay question that requires a discursive response. The topic should be of general interest and allow for discussion of different viewpoints. The instruction should be "Write at least 250 words. Give reasons for your answer and include any relevant examples from your own knowledge or experience."
 - For Task 2, you must randomly pick one of the following essay types to generate the question:
   1. Opinion Essay (Agree/Disagree): The user must state whether they agree, disagree, or partially agree with a statement. Example: "Some people think that university education should be free for everyone. To what extent do you agree or disagree?"
