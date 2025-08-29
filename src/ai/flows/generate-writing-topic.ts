@@ -21,7 +21,7 @@ export type GenerateWritingTopicInput = z.infer<typeof GenerateWritingTopicInput
 
 const ChartDataSchema = z.object({
     type: z.enum(['bar', 'line', 'pie']).describe('The type of chart to display.'),
-    data: z.array(z.any()).describe('The data for the chart, as an array of objects.'),
+    data: z.array(z.record(z.any())).describe('The data for the chart, as an array of objects.'),
     config: z.object({
         dataKey: z.string().describe('The key in the data objects that holds the value to be plotted.'),
         categoryKey: z.string().describe('The key in the data objects that represents the category or x-axis label.'),
