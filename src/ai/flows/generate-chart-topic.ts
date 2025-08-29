@@ -87,7 +87,7 @@ User-provided Topic (if any): {{{topic}}}
     - The 'topic' field MUST be a bold HTML string describing the visual.
     - Set 'taskType' to the one provided in the input (e.g., 'bar').
     - For the data, the 'name' property should be the category and the 'value' property should be the number.
-    - In the config, \`dataKey\` must be 'value' and \`categoryKey\` must be 'name'.
+    - In the config, 'dataKey' must be 'value' and 'categoryKey' must be 'name'.
     - Omit the 'visualDescription' and 'imageUrl' fields.
 
 - **If taskType is 'map' or 'process-diagram':**
