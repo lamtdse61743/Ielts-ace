@@ -44,6 +44,8 @@ User-provided Topic (if any): {{{topic}}}
 **CRITICAL REQUIREMENTS:**
 - The 'rawData' field MUST be a string containing a valid JSON object.
 - The JSON object inside 'rawData' MUST have a 'type' property set to "line".
+- The topic must be varied. Do NOT repeatedly use the same topic. Choose from a diverse range of subjects like economics (e.g., imports/exports), environment (e.g., recycling rates), social trends (e.g., population demographics), or technology (e.g., internet usage).
+- The prompt MUST be specific. Invent a realistic context, including a specific country, city, or organization (e.g., "in the UK," "in the city of Sydney," "for the company TechCorp").
 - Generate a random number of categories between 3 and 5, over 5-7 time points.
 - **Data MUST be realistic and varied.** The lines should not all go in the same direction. Some should increase, some decrease, and some should fluctuate. The lines MUST cross at least once.
 
@@ -54,24 +56,23 @@ User-provided Topic (if any): {{{topic}}}
 - The 'instructions' field should always be exactly "Summarise the information by selecting and reporting the main features, and make comparisons where relevant. Write at least 150 words."
 - If the user provides a topic, create a prompt related to it. If not, generate a random, high-quality topic appropriate for an IELTS exam.
 
-**Example for the 'rawData' string contents (Note the fluctuating data):**
+**Example for the 'rawData' string contents (Note the fluctuating data and specific context):**
 \`\`\`json
 {
   "type": "line",
   "data": [
-    { "Year": "2010", "Beef": 1.5, "Chicken": 2.2, "Pork": 1.8, "Lamb": 0.8 },
-    { "Year": "2012", "Beef": 1.6, "Chicken": 2.0, "Pork": 2.1, "Lamb": 0.9 },
-    { "Year": "2014", "Beef": 1.2, "Chicken": 2.8, "Pork": 1.7, "Lamb": 0.7 },
-    { "Year": "2016", "Beef": 1.4, "Chicken": 2.6, "Pork": 2.3, "Lamb": 1.1 },
-    { "Year": "2018", "Beef": 1.0, "Chicken": 3.5, "Pork": 1.5, "Lamb": 1.0 },
-    { "Year": "2020", "Beef": 1.1, "Chicken": 3.2, "Pork": 1.9, "Lamb": 1.2 }
+    { "Year": "2015", "Cars": 45, "Bicycles": 60, "Public Transport": 55 },
+    { "Year": "2017", "Cars": 42, "Bicycles": 65, "Public Transport": 58 },
+    { "Year": "2019", "Cars": 48, "Bicycles": 62, "Public Transport": 65 },
+    { "Year": "2021", "Cars": 55, "Bicycles": 58, "Public Transport": 60 },
+    { "Year": "2023", "Cars": 50, "Bicycles": 70, "Public Transport": 55 }
   ],
   "config": {
-    "dataKey": "Beef",
+    "dataKey": "Cars",
     "categoryKey": "Year",
-    "series": ["Beef", "Chicken", "Pork", "Lamb"],
+    "series": ["Cars", "Bicycles", "Public Transport"],
     "xAxisLabel": "Year",
-    "yAxisLabel": "Consumption (kg per person)"
+    "yAxisLabel": "Percentage of Commuters"
   }
 }
 \`\`\`
