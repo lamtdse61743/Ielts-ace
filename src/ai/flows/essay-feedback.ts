@@ -12,12 +12,16 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
 const EssayFeedbackInputSchema = z.object({
-  essay: z.string().describe('The essay to provide feedback on.'),
-  topic: z.string().describe('The topic of the essay.'),
+  essay: z.string().describe('The essay or letter to provide feedback on.'),
+  topic: z.string().describe('The topic or situation for the writing task.'),
   instructions: z
     .string()
     .optional()
-    .describe('Any specific instructions given for the essay.'),
+    .describe('Any specific instructions given for the task.'),
+  task: z.enum(['Task 1', 'Task 2']).describe('The writing task type.'),
+  trainingType: z
+    .enum(['Academic', 'General Training'])
+    .describe('The type of IELTS training.'),
 });
 export type EssayFeedbackInput = z.infer<typeof EssayFeedbackInputSchema>;
 
@@ -30,7 +34,7 @@ const BandEvaluationSchema = z.object({
 
 const EssayFeedbackOutputSchema = z.object({
   taskResponse: BandEvaluationSchema.describe(
-    'Evaluation of Task Response.'
+    'Evaluation of Task Achievement / Task Response.'
   ),
   coherenceAndCohesion: BandEvaluationSchema.describe(
     'Evaluation of Coherence and Cohesion.'
@@ -41,7 +45,7 @@ const EssayFeedbackOutputSchema = z.object({
   grammaticalRangeAndAccuracy: BandEvaluationSchema.describe(
     'Evaluation of Grammatical Range and Accuracy.'
   ),
-  overallBand: z.number().describe('The overall band score for the essay.'),
+  overallBand: z.number().describe('The overall band score for the writing.'),
   improvements: z
     .string()
     .describe(
@@ -66,17 +70,29 @@ const prompt = ai.definePrompt({
   name: 'essayFeedbackPrompt',
   input: {schema: EssayFeedbackInputSchema},
   output: {schema: EssayFeedbackOutputSchema},
-  prompt: `You are an expert IELTS examiner. Your task is to evaluate an essay based on the official IELTS Writing Task 2 band descriptors. You must provide a band score (1-9) for each of the four criteria, an overall band score, and detailed feedback.
+  prompt: `You are an expert IELTS examiner. Your task is to evaluate a piece of writing based on the official IELTS band descriptors. You must provide a band score (1-9) for each of the four criteria, an overall band score, and detailed feedback.
 
-Essay Topic: {{{topic}}}
-Essay Instructions: {{{instructions}}}
-User's Essay:
+Task Type: {{{task}}}
+Training Type: {{{trainingType}}}
+Topic/Situation: {{{topic}}}
+Instructions: {{{instructions}}}
+User's Writing:
 ---
 {{{essay}}}
 ---
 
-Please evaluate the essay against the following IELTS band descriptors. For each of the four criteria, provide a band score and specific, constructive feedback formatted as HTML. Your feedback should explain WHY the user received that band score, referencing both the user's essay and the band descriptors. Also, list specific spelling and grammatical errors.
+Please evaluate the writing against the appropriate IELTS band descriptors below. For each of the four criteria, provide a band score and specific, constructive feedback formatted as HTML. Your feedback should explain WHY the user received that band score, referencing both the user's writing and the band descriptors. Also, list specific spelling and grammatical errors.
 
+{{#if (eq task "Task 1")}}
+**IELTS GENERAL TRAINING WRITING TASK 1: Marking Criteria**
+
+*   **Task Achievement:** In Task 1, you must write a letter that addresses the given situation and has a clear purpose. You need to be concise, provide relevant and accurate content, and maintain an appropriate tone for the letter.
+*   **Coherence and Cohesion:** This criterion assesses how well your information is organized and connected. A well-organized response uses appropriate paragraphing and linking devices to make the message clear and easy to follow.
+*   **Lexical Resource (Vocabulary):** You will be marked on your ability to use a range of appropriate vocabulary, including collocations. The number of errors in spelling and word formation also impacts your score.
+*   **Grammatical Range and Accuracy:** This criterion looks at your command of grammar and punctuation. You should aim to use a variety of grammatical structures and tenses accurately and manage punctuation effectively to avoid errors that impede communication.
+
+Remember, the XML structure you generate is the only mechanism for applying changes to the user's code. Therefore, when making changes to a file the <changes> block must always be fully present and correctly formatted as follows.
+{{else}}
 **IELTS WRITING TASK 2: Band Descriptors**
 
 **Band 9**
@@ -135,8 +151,9 @@ Please evaluate the essay against the following IELTS band descriptors. For each
 
 **Band 0**
 - Did not attend, did not attempt, or wrote a wholly memorised response.
+{{/if}}
 
-Based on this, provide your full evaluation in a single JSON object that strictly follows the output schema.
+Based on the appropriate criteria, provide your full evaluation in a single JSON object that strictly follows the output schema. For the 'taskResponse' field in the output, call it "Task Achievement" if it is a Task 1 letter, and "Task Response" if it is a Task 2 essay.
 `,
 });
 

@@ -167,12 +167,16 @@ function WritingPractice() {
     if (!generatedTopic) return;
     setIsFeedbackLoading(true);
     setAnalyzedEssay(null);
+    
+    const task = topicForm.getValues('task');
 
     try {
       const feedback = await essayFeedback({
         essay: data.essay,
         topic: generatedTopic.topic,
         instructions: generatedTopic.instructions,
+        task: task,
+        trainingType: trainingType,
       });
 
       const newAnalyzedEssay: AnalyzedEssay = {
@@ -181,7 +185,7 @@ function WritingPractice() {
         essay: data.essay,
         topic: generatedTopic.topic,
         trainingType: trainingType,
-        task: topicForm.getValues('task'),
+        task: task,
         createdAt: new Date().toISOString(),
         feedback,
       };
@@ -233,7 +237,7 @@ function WritingPractice() {
   const feedbackChartData = analyzedEssay
     ? [
         {
-          name: 'Task Response',
+          name: 'Task Achievement',
           band: analyzedEssay.feedback.taskResponse.band,
         },
         {
@@ -525,7 +529,7 @@ function WritingPractice() {
                         <div className="flex w-full items-center justify-between pr-2">
                           <div className="flex items-center gap-2">
                             <MessageSquareQuote className="size-5 text-primary" />{' '}
-                            Task Response
+                            {analyzedEssay.task === 'Task 1' ? 'Task Achievement' : 'Task Response'}
                           </div>
                           <div className="rounded-md bg-muted px-2 py-1 text-base font-semibold">
                             Band: {analyzedEssay.feedback.taskResponse.band}
