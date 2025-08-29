@@ -86,6 +86,7 @@ import {
   Cell,
 } from 'recharts';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { generateBarChartTopic } from '@/ai/flows/generate-bar-chart-topic';
 
 const TopicFormSchema = z.object({
   task: z.enum(['Task 1', 'Task 2']),
@@ -197,7 +198,7 @@ function WritingPractice() {
       }
       setGeneratedTopic(result);
       setTimerKey((prevKey) => prevKey + 1); // Reset timer
-    } catch (error) {
+    } catch (error: any) {
       handleApiError(error, 'Failed to generate a topic. Please try again.');
     } finally {
       setIsLoading(false);
@@ -236,7 +237,7 @@ function WritingPractice() {
         title: 'Feedback Received!',
         description: 'Your essay has been analyzed.',
       });
-    } catch (error) {
+    } catch (error: any) {
       handleApiError(error, 'Failed to get feedback. Please try again.');
     } finally {
       setIsFeedbackLoading(false);
@@ -337,11 +338,11 @@ function WritingPractice() {
     };
     
     const barChartProps = {
-        margin: { top: 20, right: 30, left: 40, bottom: 40 },
+        margin: { top: 20, right: 30, left: 50, bottom: 40 },
     }
     
     const lineChartProps = {
-        margin: { top: 20, right: 30, left: 40, bottom: 40 },
+        margin: { top: 20, right: 30, left: 50, bottom: 40 },
     }
 
     const COLORS = ["#ef4444", "#3b82f6", "#8b5cf6", "#10b981", "#f97316"];
@@ -396,7 +397,7 @@ function WritingPractice() {
               <BarChart data={data} {...barChartProps}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey={categoryKey} angle={-30} textAnchor="end" height={60} interval={0} label={{ value: xAxisLabel, position: 'insideBottom', offset: -15 }} />
-                <YAxis label={{ value: yAxisLabel, angle: -90, position: 'insideLeft' }} />
+                <YAxis label={{ value: yAxisLabel, angle: -90, position: 'left', style: { textAnchor: 'middle' } }} />
                 <Tooltip />
                 <Legend wrapperStyle={{ bottom: 0, left: 20 }} />
                  {series?.map((seriesName: string, index: number) => (
@@ -407,7 +408,7 @@ function WritingPractice() {
               <LineChart data={data} {...lineChartProps}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey={categoryKey} angle={-30} textAnchor="end" height={60} interval={0} label={{ value: xAxisLabel, position: 'insideBottom', offset: -15 }} />
-                <YAxis label={{ value: yAxisLabel, angle: -90, position: 'insideLeft' }} />
+                <YAxis label={{ value: yAxisLabel, angle: -90, position: 'left', style: { textAnchor: 'middle' } }} />
                 <Tooltip />
                 <Legend wrapperStyle={{ bottom: 0, left: 20 }}/>
                 {series?.map((seriesName: string, index: number) => (
