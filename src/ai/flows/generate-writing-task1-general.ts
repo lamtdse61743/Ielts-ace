@@ -13,6 +13,7 @@ import {z} from 'genkit';
 
 const GenerateWritingTask1GeneralInputSchema = z.object({
   topic: z.string().optional().describe('An optional user-provided topic or keywords.'),
+  previousTopics: z.array(z.string()).optional().describe('A list of previously generated topics to avoid repeating.'),
 });
 export type GenerateWritingTask1GeneralInput = z.infer<typeof GenerateWritingTask1GeneralInputSchema>;
 
@@ -36,6 +37,13 @@ const prompt = ai.definePrompt({
   prompt: `You are an expert IELTS exam creator. Your task is to generate a writing prompt for IELTS Writing Task 1 (General Training).
 
 User-provided Topic (if any): {{{topic}}}
+
+{{#if previousTopics}}
+You MUST generate a new topic that is substantially different from the following previously generated topics:
+{{#each previousTopics}}
+- {{{this}}}
+{{/each}}
+{{/if}}
 
 Instructions:
 - Generate a situation for a letter. The topic should be a common, everyday scenario requiring a formal, semi-formal, or informal letter. The generated 'topic' text must be formatted as HTML with the entire scenario in bold (using <strong> tags).

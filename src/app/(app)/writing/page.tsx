@@ -116,6 +116,7 @@ function WritingPractice() {
   const [isFeedbackLoading, setIsFeedbackLoading] = useState(false);
   const [generatedTopic, setGeneratedTopic] =
     useState<GeneratedTopic | null>(null);
+    const [previousTopics, setPreviousTopics] = useState<string[]>([]);
   const [analyzedEssay, setAnalyzedEssay] = useState<AnalyzedEssay | null>(
     null
   );
@@ -174,10 +175,14 @@ function WritingPractice() {
     essayForm.reset();
     try {
       let result: GeneratedTopic | null = null;
+      const generationInput = {
+        topic: data.topic,
+        previousTopics,
+      }
       if (data.task === 'Task 1') {
         if (data.trainingType === 'Academic') {
           // TODO: Add UI to select chart type
-          const rawResult = await generateStackedBarChartTopic({ topic: data.topic });
+          const rawResult = await generateStackedBarChartTopic(generationInput);
           if (rawResult && rawResult.rawData) {
              result = {
                 topic: rawResult.topic,
@@ -186,17 +191,18 @@ function WritingPractice() {
              };
           }
         } else {
-          result = await generateWritingTask1General({ topic: data.topic });
+          result = await generateWritingTask1General(generationInput);
         }
       } else {
         // Task 2
-        result = await generateWritingTask2({ topic: data.topic });
+        result = await generateWritingTask2(generationInput);
       }
 
       if (!result || !result.topic) {
         throw new Error('The generated topic is invalid or empty.');
       }
       setGeneratedTopic(result);
+      setPreviousTopics(prev => [...prev, result!.topic]);
       setTimerKey((prevKey) => prevKey + 1); // Reset timer
     } catch (error: any) {
       handleApiError(error, 'Failed to generate a topic. Please try again.');

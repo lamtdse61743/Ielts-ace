@@ -13,6 +13,7 @@ import {z} from 'genkit';
 
 const GenerateWritingTask2InputSchema = z.object({
   topic: z.string().optional().describe('An optional user-provided topic or keywords.'),
+  previousTopics: z.array(z.string()).optional().describe('A list of previously generated topics to avoid repeating.'),
 });
 export type GenerateWritingTask2Input = z.infer<typeof GenerateWritingTask2InputSchema>;
 
@@ -36,6 +37,13 @@ const prompt = ai.definePrompt({
   prompt: `You are an expert IELTS exam creator. Your task is to generate a writing prompt for IELTS Writing Task 2.
 
 User-provided Topic (if any): {{{topic}}}
+
+{{#if previousTopics}}
+You MUST generate a new topic that is substantially different from the following previously generated topics:
+{{#each previousTopics}}
+- {{{this}}}
+{{/each}}
+{{/if}}
 
 Instructions:
 - Generate an essay question that requires a discursive response. The topic should be of general interest and allow for discussion of different viewpoints.

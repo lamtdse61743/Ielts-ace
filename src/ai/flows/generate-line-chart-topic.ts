@@ -13,6 +13,7 @@ import {z} from 'genkit';
 
 const GenerateLineChartTopicInputSchema = z.object({
   topic: z.string().optional().describe('An optional user-provided topic or keywords.'),
+  previousTopics: z.array(z.string()).optional().describe('A list of previously generated topics to avoid repeating.'),
 });
 export type GenerateLineChartTopicInput = z.infer<typeof GenerateLineChartTopicInputSchema>;
 
@@ -44,11 +45,18 @@ Please create a prompt related to this topic.
 Please generate a random, high-quality topic appropriate for an IELTS exam.
 {{/if}}
 
+{{#if previousTopics}}
+You MUST generate a new topic that is substantially different from the following previously generated topics:
+{{#each previousTopics}}
+- {{{this}}}
+{{/each}}
+{{/if}}
+
 **CRITICAL REQUIREMENTS:**
 - The 'rawData' field MUST be a string containing a valid JSON object.
 - The JSON object inside 'rawData' MUST have a 'type' property set to "line".
 - The topic must be varied and creative. You MUST be creative and avoid generating topics related to energy consumption, production, sources, or household/consumer spending. Do NOT reuse the same topics. Choose from a diverse range of subjects like demographics (e.g., cinema attendance by age group), social trends (e.g., international tourism numbers for different countries), education (e.g., number of students enrolled in different university faculties), or environment (e.g., recycling rates for different materials).
-- The prompt MUST be specific and compare different items over time. Invent a realistic context, including a specific country, city, or year range (e.g., "in the UK between 2015 and 2025," "in Japan from 2010 to 2020"). Do NOT just use the examples.
+- The prompt MUST be specific. Invent a realistic context, including a specific country, city, or year range (e.g., "in the UK between 2015 and 2025," "in Japan from 2010 to 2020"). Do NOT just use the examples.
 - Generate a random number of data series (lines on the chart), between 3 and 5.
 - Generate a random number of time points (e.g., years), between 5 and 8.
 - Data MUST be realistic and tell a story. The numbers should be plausible for the context. For example, if the topic is "Average Monthly Rent," the numbers should be in the hundreds or thousands, not single digits. The lines should show different, clear trends (some increasing, some decreasing, some fluctuating) and should intersect at least once to provide clear points for comparison. Avoid generating flat lines or data where all categories have very similar values.

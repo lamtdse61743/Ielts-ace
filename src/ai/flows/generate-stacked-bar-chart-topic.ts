@@ -13,6 +13,7 @@ import {z} from 'genkit';
 
 const GenerateStackedBarChartTopicInputSchema = z.object({
   topic: z.string().optional().describe('An optional user-provided topic or keywords.'),
+  previousTopics: z.array(z.string()).optional().describe('A list of previously generated topics to avoid repeating.'),
 });
 export type GenerateStackedBarChartTopicInput = z.infer<typeof GenerateStackedBarChartTopicInputSchema>;
 
@@ -42,6 +43,13 @@ User-provided Topic: {{{topic}}}
 Please create a prompt related to this topic.
 {{else}}
 Please generate a random, high-quality topic appropriate for an IELTS exam.
+{{/if}}
+
+{{#if previousTopics}}
+You MUST generate a new topic that is substantially different from the following previously generated topics:
+{{#each previousTopics}}
+- {{{this}}}
+{{/each}}
 {{/if}}
 
 **CRITICAL REQUIREMENTS:**
