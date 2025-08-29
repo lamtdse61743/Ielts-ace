@@ -15,11 +15,16 @@ import {
 } from '@/components/ui/sidebar';
 import { Logo } from '@/components/icons';
 import { Bookmark, Notebook, PenSquare, Home, Headphones, Mic } from 'lucide-react';
+import { AuthButton, useAuth } from '@/hooks/use-auth';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { LogIn } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 export function AppSidebar() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const trainingType = searchParams.get('type') || 'Academic';
+  const { user, loading, signInWithGoogle, logout } = useAuth();
 
   return (
     <Sidebar>
@@ -107,8 +112,27 @@ export function AppSidebar() {
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarContent>
-      <SidebarFooter className="md:hidden">
-        <SidebarTrigger />
+       <SidebarFooter>
+        <div className="flex items-center justify-between p-2">
+          {loading ? (
+             <div className="h-10 w-full animate-pulse rounded-md bg-muted" />
+          ) : user ? (
+            <div className="flex w-full items-center gap-2">
+                <Avatar className="size-8">
+                    <AvatarImage src={user.photoURL || ''} alt={user.displayName || 'User'}/>
+                    <AvatarFallback>{user.displayName?.[0]}</AvatarFallback>
+                </Avatar>
+                <span className="flex-1 truncate text-sm font-medium">{user.displayName}</span>
+                <Button variant="outline" size="sm" onClick={() => logout()}>Logout</Button>
+            </div>
+          ) : (
+            <Button variant="outline" className="w-full" onClick={() => signInWithGoogle()}>
+                <LogIn className="mr-2 size-4" />
+                Login
+            </Button>
+          )}
+        </div>
+        <SidebarTrigger className="md:hidden" />
       </SidebarFooter>
     </Sidebar>
   );

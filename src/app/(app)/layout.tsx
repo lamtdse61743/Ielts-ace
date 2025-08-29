@@ -1,6 +1,7 @@
 import { AppSidebar } from '@/components/app-sidebar';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { SavedContentProvider } from '@/hooks/use-saved-content';
+import { AuthProvider } from '@/hooks/use-auth';
 
 export default function AppLayout({
   children,
@@ -9,10 +10,12 @@ export default function AppLayout({
 }) {
   return (
     <SavedContentProvider>
-      <SidebarProvider>
-        <AppSidebar />
-        <SidebarInset>{children}</SidebarInset>
-      </SidebarProvider>
+      <AuthProvider>
+        <SidebarProvider>
+          <AppSidebar />
+          <SidebarInset>{children}</SidebarInset>
+        </SidebarProvider>
+      </AuthProvider>
     </SavedContentProvider>
   );
 }
