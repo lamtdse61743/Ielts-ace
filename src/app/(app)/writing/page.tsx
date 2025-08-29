@@ -321,20 +321,21 @@ function WritingPractice() {
     }
 
     const { type, data, config } = generatedTopic.chartData;
-    const { dataKey, categoryKey, xAxisLabel, yAxisLabel } = config;
+    const { dataKey, categoryKey, xAxisLabel, yAxisLabel, series } = config;
 
     const chartProps = {
-      data,
       margin: { top: 20, right: 30, left: 20, bottom: 40 },
     };
+
+    const COLORS = ['#5DADE2', '#008080', '#2E86C1', '#17A589', '#85C1E9', '#48C9B0'];
 
     const RADIAN = Math.PI / 180;
     const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, index }: any) => {
         const radius = innerRadius + (outerRadius - innerRadius) * 0.7;
         const x = cx + radius * Math.cos(-midAngle * RADIAN);
         const y = cy + radius * Math.sin(-midAngle * RADIAN);
-        const value = data[index][dataKey as keyof typeof data[number]];
-        const name = data[index][categoryKey as keyof typeof data[number]];
+        const value = (data[index] as any)[dataKey as any];
+        const name = (data[index] as any)[categoryKey as any];
 
         if ((percent * 100) < 5) return null; // Don't render label if slice is too small
 
@@ -345,7 +346,6 @@ function WritingPractice() {
         );
     };
 
-    const COLORS = ['#5DADE2', '#008080', '#2E86C1', '#17A589', '#85C1E9', '#48C9B0'];
 
      if (type === 'table') {
         const headers = data.length > 0 ? Object.keys(data[0]) : [];
@@ -376,7 +376,7 @@ function WritingPractice() {
         <div className="h-96 w-full">
           <ResponsiveContainer width="100%" height="100%">
             {type === 'bar' ? (
-              <BarChart {...chartProps}>
+              <BarChart data={data} {...chartProps}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey={categoryKey} angle={-30} textAnchor="end" height={60} interval={0} label={{ value: xAxisLabel, position: 'insideBottom', offset: -15 }} />
                 <YAxis label={{ value: yAxisLabel, angle: -90, position: 'insideLeft', offset: -5 }} />
@@ -387,13 +387,15 @@ function WritingPractice() {
                 </Bar>
               </BarChart>
             ) : type === 'line' ? (
-              <LineChart {...chartProps} margin={{ top: 20, right: 30, left: 30, bottom: 40 }}>
+              <LineChart data={data} margin={{ top: 20, right: 30, left: 30, bottom: 40 }}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey={categoryKey} angle={-30} textAnchor="end" height={60} interval={0} label={{ value: xAxisLabel, position: 'insideBottom', offset: -15 }} />
-                <YAxis label={{ value: yAxisLabel, angle: -90, position: 'insideLeft' }} />
+                <YAxis label={{ value: yAxisLabel, angle: -90, position: 'insideLeft', offset: -5 }} />
                 <Tooltip />
                 <Legend wrapperStyle={{ bottom: 0, left: 20 }}/>
-                <Line type="monotone" dataKey={dataKey} stroke="hsl(var(--primary))" activeDot={{ r: 8 }} />
+                {series?.map((seriesName, index) => (
+                  <Line key={seriesName} type="monotone" dataKey={seriesName} stroke={COLORS[index % COLORS.length]} activeDot={{ r: 8 }} />
+                ))}
               </LineChart>
             ) : type === 'pie' ? (
               <PieChart>

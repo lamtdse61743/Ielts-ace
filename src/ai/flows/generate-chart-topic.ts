@@ -26,16 +26,20 @@ const ChartDataPointSchema = z.object({
     value: z.number().describe("The numerical value for a data point."),
 });
 
+const MultiSeriesChartDataPointSchema = z.record(z.union([z.string(), z.number()]));
+
 const ChartDataSchema = z.object({
     type: z.enum(['bar', 'line', 'pie', 'table', 'mixed']).describe("The type of chart to represent the data."),
-    data: z.array(ChartDataPointSchema).describe("An array of data objects for the chart. Each object must conform to the ChartDataPointSchema with a 'name' and a 'value'."),
+    data: z.array(z.union([ChartDataPointSchema, MultiSeriesChartDataPointSchema])).describe("An array of data objects for the chart. For multi-series line charts, each object represents a point on the category axis (e.g., a year) and contains key-value pairs for each series."),
     config: z.object({
-        dataKey: z.string().describe("The key in the data objects that holds the numerical value. This must be 'value'."),
-        categoryKey: z.string().describe("The key in the data objects that holds the category label. This must be 'name'."),
+        dataKey: z.string().describe("The key in the data objects that holds the primary numerical value. This must be 'value' for single-series charts."),
+        categoryKey: z.string().describe("The key in the data objects that holds the category label. This must be 'name' for single-series charts."),
+        series: z.array(z.string()).optional().describe("For multi-series charts, an array of strings representing the names of the different data series (lines)."),
         xAxisLabel: z.string().optional().describe("The label for the X-axis of the chart."),
         yAxisLabel: z.string().optional().describe("The label for the Y-axis of the chart."),
     }).describe("Configuration for rendering the chart.")
 });
+
 
 const GenerateChartTopicOutputSchema = z.object({
     topic: z.string().describe("The generated topic description for the visual. This should be formatted in HTML, and the entire prompt should be bold."),
@@ -65,13 +69,25 @@ User-provided Topic (if any): {{{topic}}}
 
 **Response Instructions:**
 
-- **If taskType is 'bar', 'line', 'pie', or 'table':**
+- **If taskType is 'line':**
+    - You MUST generate a line chart that compares 3 to 4 different categories over a period of time (e.g., 5-7 time points).
+    - You MUST generate structured JSON in the 'chartData' field.
+    - The 'topic' field MUST be a bold HTML string describing the visual.
+    - Set 'taskType' to 'line'.
+    - In the 'chartData.data' array, each object should represent a time point (e.g., a year). The object's 'categoryKey' should be the time point, and the other keys should be the names of the categories being measured, with their corresponding numerical values.
+    - In the 'chartData.config' object:
+        - 'categoryKey' MUST be the name of the property representing the time point (e.g., "year").
+        - 'series' MUST be an array of strings containing the names of the 3-4 categories.
+        - 'dataKey' can be omitted or set to the name of one of the series.
+    - Omit the 'visualDescription' and 'imageUrl' fields.
+
+- **If taskType is 'bar', 'pie', or 'table':**
     - You MUST generate structured JSON in the 'chartData' field.
     - The 'topic' field MUST be a bold HTML string describing the visual.
     - Set 'taskType' to the one provided in the input (e.g., 'bar').
-    - Omit the 'visualDescription' and 'imageUrl' fields.
     - For the data, the 'name' property should be the category and the 'value' property should be the number.
     - In the config, \`dataKey\` must be 'value' and \`categoryKey\` must be 'name'.
+    - Omit the 'visualDescription' and 'imageUrl' fields.
 
 - **If taskType is 'map' or 'process-diagram':**
     - You MUST generate a detailed description of the visual in the 'visualDescription' field. This description should be formatted as HTML (e.g., using <p>, <ul>, <li>, <strong>) and act as the visual aid for the user. For a map, describe the key features of the 'before' and 'after' states.
@@ -88,34 +104,27 @@ User-provided Topic (if any): {{{topic}}}
     - The 'instructions' field should always be "Summarise the information by selecting and reporting the main features, and make comparisons where relevant. Write at least 150 words."
     - If the user provides a topic, create a prompt related to it. If not, generate a random, high-quality topic appropriate for an IELTS exam.
 
-**Example for a Bar Chart:**
+**Example for a Multi-Line Chart:**
 {
-  "topic": "<strong>The chart below shows the percentage of the population in four European countries who were aged 65 and over in 2020.</strong>",
+  "topic": "<strong>The line graph below shows the average monthly consumption of different types of meat in a European country from 2010 to 2025.</strong>",
   "instructions": "Summarise the information by selecting and reporting the main features, and make comparisons where relevant. Write at least 150 words.",
-  "taskType": "bar",
+  "taskType": "line",
   "chartData": {
-    "type": "bar",
+    "type": "line",
     "data": [
-      { "name": "Germany", "value": 22 },
-      { "name": "Italy", "value": 23 },
-      { "name": "France", "value": 21 },
-      { "name": "Spain", "value": 20 }
+      { "Year": "2010", "Beef": 1.5, "Chicken": 2.2, "Pork": 1.8 },
+      { "Year": "2015", "Beef": 1.2, "Chicken": 2.8, "Pork": 1.7 },
+      { "Year": "2020", "Beef": 1.0, "Chicken": 3.5, "Pork": 1.5 },
+      { "Year": "2025", "Beef": 0.8, "Chicken": 4.0, "Pork": 1.4 }
     ],
     "config": {
-      "dataKey": "value",
-      "categoryKey": "name",
-      "xAxisLabel": "Country",
-      "yAxisLabel": "Percentage of Population"
+      "dataKey": "Beef",
+      "categoryKey": "Year",
+      "series": ["Beef", "Chicken", "Pork"],
+      "xAxisLabel": "Year",
+      "yAxisLabel": "Consumption (kg per person)"
     }
   }
-}
-
-**Example for a Map:**
-{
-  "topic": "<strong>The two maps below show the changes to an industrial area called Chorleywood between 1995 and the present day.</strong>",
-  "instructions": "Summarise the information by selecting and reporting the main features, and make comparisons where relevant. Write at least 150 words.",
-  "taskType": "map",
-  "visualDescription": "<h3>Chorleywood - 1995</h3><p>The map shows a large industrial area with several factories to the north. A main road runs through the center. To the south, there is a large area of undeveloped farmland.</p><h3>Chorleywood - Present Day</h3><p>The factories have been demolished and replaced with a new housing estate. A new school has been constructed next to the housing. The main road has been pedestrianized, and the farmland has been converted into a large park with a lake.</p>"
 }
 
 Your entire response must be in a single JSON object that strictly follows the output schema.
