@@ -60,7 +60,6 @@ Instructions:
   - You MUST generate structured JSON data for a chart in the 'chartData' field. The chart can be a 'bar', 'line', or 'pie' chart.
   - The 'chartData' JSON must include 'type', 'data', and 'config' properties. 'config' must have 'dataKey' and 'categoryKey'.
   - The 'data' array MUST contain objects with keys that directly match the 'dataKey' and 'categoryKey' in the config. For example, if config is {"dataKey": "expenditure", "categoryKey": "country"}, the data array should look like: [{"country": "UK", "expenditure": 500}, {"country": "USA", "expenditure": 750}]. Do NOT just return empty objects or objects with placeholder values. The data must be meaningful.
-  - The instruction should be "Summarise the information by selecting and reporting the main features, and make comparisons where relevant. Write at least 150 words."
 - For Task 1 (General Training): 
   - Generate a situation for a letter. The topic should be a common, everyday scenario requiring a formal, semi-formal, or informal letter. The generated 'topic' text must be formatted as HTML with the entire scenario in bold (using <strong> tags). 
   - Please ensure variety in the prompts. Generate scenarios such as:
