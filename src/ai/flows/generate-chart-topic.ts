@@ -129,8 +129,9 @@ const generateChartTopicFlow = ai.defineFlow(
     outputSchema: GenerateChartTopicOutputSchema,
   },
   async input => {
-    const taskTypes = ['bar', 'line', 'pie', 'table', 'map', 'process-diagram', 'mixed'];
-    const randomTaskType = taskTypes[Math.floor(Math.random() * taskTypes.length)];
+    // const taskTypes = ['bar', 'line', 'pie', 'table', 'map', 'process-diagram', 'mixed'];
+    // const randomTaskType = taskTypes[Math.floor(Math.random() * taskTypes.length)];
+    const randomTaskType = 'line';
 
     const promptInput = {...input, taskType: randomTaskType};
     const {output} = await prompt(promptInput);
