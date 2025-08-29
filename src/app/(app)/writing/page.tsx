@@ -93,7 +93,7 @@ const TopicFormSchema = z.object({
 });
 type TopicFormValues = z.infer<typeof TopicFormSchema>;
 
-type GeneratedTopic = GenerateWritingTask1AcademicOutput | GenerateWritingTask1GeneralOutput | GenerateWritingTask2Output;
+type GeneratedTopic = (GenerateWritingTask1AcademicOutput & { chartData?: any }) | GenerateWritingTask1GeneralOutput | GenerateWritingTask2Output;
 
 const EssayFormSchema = z.object({
   essay: z.string().min(50, 'Your essay should be at least 50 words.'),
@@ -475,7 +475,7 @@ function WritingPractice() {
                   className="prose dark:prose-invert max-w-none"
                   dangerouslySetInnerHTML={{ __html: generatedTopic.topic }}
                 />
-                {renderGeneratedChart()}
+                {/* {renderGeneratedChart()} */}
                 <div
                   className="prose dark:prose-invert max-w-none rounded-md border bg-muted p-4 italic"
                   dangerouslySetInnerHTML={{
