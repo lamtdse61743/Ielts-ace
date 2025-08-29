@@ -47,7 +47,7 @@ Please generate a random, high-quality topic appropriate for an IELTS exam.
 **CRITICAL REQUIREMENTS:**
 - The 'rawData' field MUST be a string containing a valid JSON object.
 - The JSON object inside 'rawData' MUST have a 'type' property set to "bar".
-- The topic must be varied. Do NOT repeatedly use the same topic. Choose from a diverse range of subjects like demographics (e.g., population by age group in different cities), economics (e.g., company revenue from different sectors), or environment (e.g., energy production from various sources in different countries).
+- The topic must be varied and creative. Do NOT repeatedly use the same topic. Choose from a diverse range of subjects like demographics (e.g., population by age group in different cities), economics (e.g., company revenue from different sectors), environment (e.g., energy production from various sources like solar, wind, coal), or social habits (e.g., time spent on various activities like work, leisure, sleep).
 - The prompt MUST be specific. Invent a realistic context, including a specific country, city, or year (e.g., "in Germany in 2022," "for the city of Sydney," "for the year 2021").
 - Generate a random number of primary categories (the bars on the x-axis) between 4 and 6.
 - Generate a random number of data series (the segments within each bar) between 3 and 5.
@@ -64,15 +64,14 @@ Please generate a random, high-quality topic appropriate for an IELTS exam.
 {
   "type": "bar",
   "data": [
-    { "Material": "Paper", "New York": 120, "Los Angeles": 150, "Chicago": 90 },
-    { "Material": "Glass", "New York": 80, "Los Angeles": 100, "Chicago": 70 },
-    { "Material": "Plastics", "New York": 90, "Los Angeles": 110, "Chicago": 80 },
-    { "Material": "Metals", "New York": 50, "Los Angeles": 60, "Chicago": 40 }
+    { "City": "New York", "Paper": 120, "Glass": 80, "Plastics": 90, "Metals": 50 },
+    { "City": "Los Angeles", "Paper": 150, "Glass": 100, "Plastics": 110, "Metals": 60 },
+    { "City": "Chicago", "Paper": 90, "Glass": 70, "Plastics": 80, "Metals": 40 }
   ],
   "config": {
-    "categoryKey": "Material",
-    "series": ["New York", "Los Angeles", "Chicago"],
-    "xAxisLabel": "Material",
+    "categoryKey": "City",
+    "series": ["Paper", "Glass", "Plastics", "Metals"],
+    "xAxisLabel": "City",
     "yAxisLabel": "Waste Recycled (in thousands of tonnes)"
   }
 }

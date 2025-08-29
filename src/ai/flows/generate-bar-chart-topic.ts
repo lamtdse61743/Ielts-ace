@@ -49,7 +49,7 @@ Please generate a random, high-quality topic appropriate for an IELTS exam.
 **CRITICAL REQUIREMENTS:**
 - The 'rawData' field MUST be a string containing a valid JSON object.
 - The JSON object inside 'rawData' MUST have a 'type' property set to "bar".
-- The topic must be varied. Do NOT repeatedly use the same topic. Choose from a diverse range of subjects like economics (e.g., consumer spending on different goods), environment (e.g., recycling rates in different countries), social trends (e.g., participation in various sports by gender), or technology (e.g., internet usage by age group on different devices).
+- The topic must be varied and creative. Do NOT repeatedly use the same topic. Choose from a diverse range of subjects like economics (e.g., consumer spending on different goods, import/export figures), environment (e.g., recycling rates vs. waste production), social trends (e.g., participation in various sports by gender, social media usage across age groups), education (e.g., university enrollment in different fields), or technology (e.g., internet usage by age group on different devices).
 - The prompt MUST be specific. Invent a realistic context, including a specific country, city, or year (e.g., "in the UK in 2020," "for residents of Paris," "for the year 2023").
 - Generate a random number of primary categories (the groups on the x-axis) between 4 and 6.
 - Generate a random number of data series (the bars within each group) between 2 and 4.
