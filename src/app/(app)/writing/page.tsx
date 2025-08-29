@@ -292,9 +292,6 @@ function WritingPractice() {
 
     return (
       <div className="my-6 w-full rounded-md border p-4">
-        <pre className="mb-4 whitespace-pre-wrap rounded bg-muted p-4 text-xs font-light">
-          {JSON.stringify(generatedTopic.chartData, null, 2)}
-        </pre>
         <div className="h-80 w-full">
             <ResponsiveContainer width="100%" height="100%">
             {type === 'bar' ? (
