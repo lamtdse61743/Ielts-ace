@@ -10,11 +10,17 @@ import { cn } from '@/lib/utils';
 interface ExamTimerProps {
   initialTime: number; // in seconds
   className?: string;
+  autoStart?: boolean;
 }
 
-export function ExamTimer({ initialTime, className }: ExamTimerProps) {
+export function ExamTimer({ initialTime, className, autoStart = false }: ExamTimerProps) {
   const [timeLeft, setTimeLeft] = useState(initialTime);
-  const [isActive, setIsActive] = useState(true);
+  const [isActive, setIsActive] = useState(autoStart);
+
+  useEffect(() => {
+    setIsActive(autoStart);
+    setTimeLeft(initialTime);
+  }, [initialTime, autoStart]);
 
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null;
@@ -22,8 +28,6 @@ export function ExamTimer({ initialTime, className }: ExamTimerProps) {
       interval = setInterval(() => {
         setTimeLeft((prevTime) => prevTime - 1);
       }, 1000);
-    } else if (!isActive && timeLeft !== 0) {
-      if (interval) clearInterval(interval);
     } else if (timeLeft === 0) {
       setIsActive(false);
     }
@@ -39,9 +43,9 @@ export function ExamTimer({ initialTime, className }: ExamTimerProps) {
   }, [isActive, timeLeft]);
 
   const resetTimer = useCallback(() => {
-    setIsActive(false);
+    setIsActive(autoStart);
     setTimeLeft(initialTime);
-  }, [initialTime]);
+  }, [initialTime, autoStart]);
 
   const formatTime = (seconds: number) => {
     const minutes = Math.floor(seconds / 60);

@@ -55,6 +55,9 @@ import {
   RefreshCcw,
   SpellCheck,
   Waypoints,
+  LineChart as LineChartIcon,
+  BarChart2,
+  PieChartIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -66,6 +69,13 @@ import {
   Tooltip,
   ResponsiveContainer,
   LabelList,
+  LineChart,
+  Line,
+  CartesianGrid,
+  Legend,
+  PieChart,
+  Pie,
+  Cell,
 } from 'recharts';
 
 const TopicFormSchema = z.object({
@@ -87,7 +97,7 @@ function WritingPractice() {
     'Academic';
 
   const [trainingType, setTrainingType] =
-    useState<"Academic" | "General Training">(initialTrainingType);
+    useState<'Academic' | 'General Training'>(initialTrainingType);
   const [isLoading, setIsLoading] = useState(false);
   const [isFeedbackLoading, setIsFeedbackLoading] = useState(false);
   const [generatedTopic, setGeneratedTopic] =
@@ -97,7 +107,6 @@ function WritingPractice() {
   );
   const [wordCount, setWordCount] = useState(0);
   const [timerKey, setTimerKey] = useState(0);
-
 
   const { toast } = useToast();
   const { addSavedItem, removeSavedItem, isSaved } = useSavedContent();
@@ -122,7 +131,7 @@ function WritingPractice() {
     resolver: zodResolver(EssayFormSchema),
     defaultValues: {
       essay: '',
-    }
+    },
   });
 
   const handleApiError = (error: any, defaultMessage: string) => {
@@ -135,7 +144,7 @@ function WritingPractice() {
       description =
         'API rate limit exceeded. Please check your billing status or try again later.';
     } else if (error instanceof Error) {
-        description = error.message;
+      description = error.message;
     }
     toast({
       variant: 'destructive',
@@ -155,7 +164,7 @@ function WritingPractice() {
         throw new Error('The generated topic is invalid or empty.');
       }
       setGeneratedTopic(result);
-      setTimerKey(prevKey => prevKey + 1); // Reset timer
+      setTimerKey((prevKey) => prevKey + 1); // Reset timer
     } catch (error) {
       handleApiError(error, 'Failed to generate a topic. Please try again.');
     } finally {
@@ -167,8 +176,9 @@ function WritingPractice() {
     if (!generatedTopic) return;
     setIsFeedbackLoading(true);
     setAnalyzedEssay(null);
-    
+
     const task = topicForm.getValues('task');
+    const currentTrainingType = topicForm.getValues('trainingType');
 
     try {
       const feedback = await essayFeedback({
@@ -176,7 +186,7 @@ function WritingPractice() {
         topic: generatedTopic.topic,
         instructions: generatedTopic.instructions,
         task: task,
-        trainingType: trainingType,
+        trainingType: currentTrainingType,
       });
 
       const newAnalyzedEssay: AnalyzedEssay = {
@@ -184,7 +194,7 @@ function WritingPractice() {
         type: 'essay',
         essay: data.essay,
         topic: generatedTopic.topic,
-        trainingType: trainingType,
+        trainingType: currentTrainingType,
         task: task,
         createdAt: new Date().toISOString(),
         feedback,
@@ -254,6 +264,58 @@ function WritingPractice() {
         },
       ]
     : [];
+
+  const renderGeneratedChart = () => {
+    if (!generatedTopic?.chartData) return null;
+
+    const { type, data, config } = generatedTopic.chartData;
+    const { dataKey, categoryKey, xAxisLabel, yAxisLabel } = config;
+
+    const chartProps = {
+      data,
+      margin: { top: 5, right: 20, left: 10, bottom: 20 },
+    };
+
+    return (
+      <div className="my-6 h-80 w-full rounded-md border p-4">
+        <ResponsiveContainer width="100%" height="100%">
+          {type === 'bar' ? (
+            <BarChart {...chartProps}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey={categoryKey} label={{ value: xAxisLabel, position: 'insideBottom', offset: -10 }} />
+              <YAxis label={{ value: yAxisLabel, angle: -90, position: 'insideLeft' }} />
+              <Tooltip />
+              <Legend />
+              <Bar dataKey={dataKey} fill="hsl(var(--primary))" />
+            </BarChart>
+          ) : type === 'line' ? (
+            <LineChart {...chartProps}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey={categoryKey} label={{ value: xAxisLabel, position: 'insideBottom', offset: -10 }} />
+              <YAxis label={{ value: yAxisLabel, angle: -90, position: 'insideLeft' }} />
+              <Tooltip />
+              <Legend />
+              <Line type="monotone" dataKey={dataKey} stroke="hsl(var(--primary))" activeDot={{ r: 8 }} />
+            </LineChart>
+          ) : type === 'pie' ? (
+             <PieChart>
+              <Pie data={data} dataKey={dataKey} nameKey={categoryKey} cx="50%" cy="50%" outerRadius={100} fill="hsl(var(--primary))" label >
+                 {data.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={`hsl(var(--primary), ${1 - (index / data.length) * 0.7})`} />
+                  ))}
+              </Pie>
+              <Tooltip />
+              <Legend />
+            </PieChart>
+          ) : (
+            <div className="flex h-full items-center justify-center bg-muted text-muted-foreground">
+                <p>Unsupported chart type: {type}</p>
+            </div>
+          )}
+        </ResponsiveContainer>
+      </div>
+    );
+  };
 
   return (
     <div className="flex h-full min-h-0 flex-col">
@@ -375,6 +437,7 @@ function WritingPractice() {
                   className="prose dark:prose-invert max-w-none"
                   dangerouslySetInnerHTML={{ __html: generatedTopic.topic }}
                 />
+                {renderGeneratedChart()}
                 <div
                   className="prose dark:prose-invert max-w-none rounded-md border bg-muted p-4 italic"
                   dangerouslySetInnerHTML={{
@@ -434,6 +497,7 @@ function WritingPractice() {
                       initialTime={
                         topicForm.getValues('task') === 'Task 1' ? 1200 : 2400
                       }
+                      autoStart={true}
                     />
                   </CardFooter>
                 </form>
@@ -529,7 +593,9 @@ function WritingPractice() {
                         <div className="flex w-full items-center justify-between pr-2">
                           <div className="flex items-center gap-2">
                             <MessageSquareQuote className="size-5 text-primary" />{' '}
-                            {analyzedEssay.task === 'Task 1' ? 'Task Achievement' : 'Task Response'}
+                            {analyzedEssay.task === 'Task 1'
+                              ? 'Task Achievement'
+                              : 'Task Response'}
                           </div>
                           <div className="rounded-md bg-muted px-2 py-1 text-base font-semibold">
                             Band: {analyzedEssay.feedback.taskResponse.band}
