@@ -30,6 +30,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signInWithGoogle = async () => {
     const provider = new GoogleAuthProvider();
     try {
+      // Explicitly setting the authDomain can resolve some localhost issues.
+      provider.setCustomParameters({
+        'authDomain': 'ielts-ace-e7kcb.firebaseapp.com'
+      });
       await signInWithPopup(auth, provider);
     } catch (error) {
       console.error("Error signing in with Google", error);
