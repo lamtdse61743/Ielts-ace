@@ -76,7 +76,7 @@ const TopicFormSchema = z.object({
 type TopicFormValues = z.infer<typeof TopicFormSchema>;
 
 const EssayFormSchema = z.object({
-  essay: z.string().min(100, 'Your essay should be at least 100 words.'),
+  essay: z.string().min(50, 'Your essay should be at least 50 words.'),
 });
 type EssayFormValues = z.infer<typeof EssayFormSchema>;
 
@@ -120,6 +120,9 @@ function WritingPractice() {
 
   const essayForm = useForm<EssayFormValues>({
     resolver: zodResolver(EssayFormSchema),
+    defaultValues: {
+      essay: '',
+    }
   });
 
   const handleApiError = (error: any, defaultMessage: string) => {
@@ -131,6 +134,8 @@ function WritingPractice() {
     ) {
       description =
         'API rate limit exceeded. Please check your billing status or try again later.';
+    } else if (error instanceof Error) {
+        description = error.message;
     }
     toast({
       variant: 'destructive',
@@ -159,7 +164,7 @@ function WritingPractice() {
   };
 
   const onEssaySubmit: SubmitHandler<EssayFormValues> = async (data) => {
-    if (!generatedTopic || !trainingType) return;
+    if (!generatedTopic) return;
     setIsFeedbackLoading(true);
     setAnalyzedEssay(null);
 
@@ -316,7 +321,7 @@ function WritingPractice() {
                             <Input
                               placeholder={
                                 topicForm.watch('task') === 'Task 1'
-                                  ? 'e.g., A bar chart showing student preferences'
+                                  ? 'e.g., A letter to a friend about a holiday'
                                   : 'e.g., The impact of technology on society'
                               }
                               {...field}
