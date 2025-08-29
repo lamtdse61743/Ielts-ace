@@ -285,7 +285,7 @@ function WritingPractice() {
       const name = data[index][categoryKey];
       return (
         <text x={x} y={y} fill="white" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central">
-          {`${name} (${value})`}
+          {`${name} (${(percent * 100).toFixed(0)}%)`}
         </text>
       );
     };
