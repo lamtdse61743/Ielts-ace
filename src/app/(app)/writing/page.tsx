@@ -224,7 +224,7 @@ function WritingPractice() {
         topic: generatedTopic.topic,
         trainingType: currentTrainingType,
         task: task,
-        createdAt: new Date().toISOString(),
+        createdAt: new date().toISOString(),
         feedback,
       };
       setAnalyzedEssay(newAnalyzedEssay);
@@ -332,7 +332,7 @@ function WritingPractice() {
       margin: { top: 20, right: 30, left: 20, bottom: 40 },
     };
 
-    const COLORS = ["#3b82f6", "#ef4444", "#8b5cf6", "#10b981", "#f97316"];
+    const COLORS = ["#ef4444", "#3b82f6", "#8b5cf6", "#10b981", "#f97316"];
 
     const RADIAN = Math.PI / 180;
     const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, index }: any) => {
@@ -399,7 +399,7 @@ function WritingPractice() {
                 <Tooltip />
                 <Legend wrapperStyle={{ bottom: 0, left: 20 }}/>
                 {series?.map((seriesName, index) => (
-                  <Line key={seriesName} type="monotone" dataKey={seriesName} stroke={COLORS[index % COLORS.length]} activeDot={{ r: 8 }} />
+                  <Line key={seriesName} type="linear" dataKey={seriesName} stroke={COLORS[index % COLORS.length]} activeDot={{ r: 8 }} />
                 ))}
               </LineChart>
             ) : type === 'pie' ? (
@@ -825,3 +825,5 @@ export default function WritingPage() {
     </Suspense>
   );
 }
+
+    
