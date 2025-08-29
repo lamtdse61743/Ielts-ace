@@ -20,7 +20,7 @@ export type GenerateChartTopicInput = z.infer<typeof GenerateChartTopicInputSche
 const MultiSeriesChartDataPointSchema = z.object({}).catchall(z.union([z.string(), z.number()]));
 
 const ChartDataSchema = z.object({
-    type: z.literal('line').describe("The type of chart to represent the data."),
+    type: z.string().describe("The type of chart to represent the data (must be 'line')."),
     data: z.array(MultiSeriesChartDataPointSchema).describe("An array of data objects for the chart. Each object represents a point on the category axis (e.g., a year) and contains key-value pairs for each series."),
     config: z.object({
         dataKey: z.string().describe("The key in the data objects that holds the primary numerical value."),
@@ -35,7 +35,7 @@ const GenerateChartTopicOutputSchema = z.object({
     topic: z.string().describe("The generated topic description for the visual. This should be formatted in HTML, and the entire prompt should be bold."),
     instructions: z.string().describe("Specific instructions for the task, formatted in HTML."),
     chartData: ChartDataSchema.describe("Structured data for generating a visual chart."),
-    taskType: z.literal('line').describe("The type of visual task generated.")
+    taskType: z.string().describe("The type of visual task generated (must be 'line').")
 });
 export type GenerateChartTopicOutput = z.infer<typeof GenerateChartTopicOutputSchema>;
 
