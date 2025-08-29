@@ -47,7 +47,7 @@ Please generate a random, high-quality topic appropriate for an IELTS exam.
 **CRITICAL REQUIREMENTS:**
 - The 'rawData' field MUST be a string containing a valid JSON object.
 - The JSON object inside 'rawData' MUST have a 'type' property set to "line".
-- The topic must be varied and creative. You MUST be creative and avoid generating topics related to energy consumption, production, or sources. Do NOT reuse the same topics. Choose from a diverse range of subjects like economics (e.g., unemployment rates in different countries), social trends (e.g., average house prices in different cities, international tourism numbers), or demographics (e.g., birth rates in several nations).
+- The topic must be varied and creative. You MUST be creative and avoid generating topics related to energy consumption, production, sources, or household/consumer spending. Do NOT reuse the same topics. Choose from a diverse range of subjects like demographics (e.g., cinema attendance by age group), social trends (e.g., international tourism numbers for different countries), education (e.g., number of students enrolled in different university faculties), or environment (e.g., recycling rates for different materials).
 - The prompt MUST be specific and compare different items over time. Invent a realistic context, including a specific country, city, or year range (e.g., "in the UK between 2015 and 2025,").
 - Generate a random number of data series (lines on the chart), between 3 and 5.
 - Generate a random number of time points (e.g., years), between 5 and 8.
