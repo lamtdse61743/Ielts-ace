@@ -16,13 +16,17 @@ const GenerateChartTopicInputSchema = z.object({
 });
 export type GenerateChartTopicInput = z.infer<typeof GenerateChartTopicInputSchema>;
 
+const ChartDataPointSchema = z.object({
+    name: z.string().describe("The label for a data point (e.g., a year, a country). This will be the category."),
+    value: z.number().describe("The numerical value for a data point."),
+});
+
 const ChartDataSchema = z.object({
     type: z.enum(['bar', 'line', 'pie']).describe("The type of chart to represent the data. Can be 'bar', 'line', or 'pie'."),
-    data: z.array(z.record(z.union([z.string(), z.number()])))
-      .describe("An array of data objects for the chart. Each object should have keys corresponding to the 'categoryKey' and 'dataKey' from the config."),
+    data: z.array(ChartDataPointSchema).describe("An array of data objects for the chart. Each object must conform to the ChartDataPointSchema with a 'name' and a 'value'."),
     config: z.object({
-        dataKey: z.string().describe("The key in the data objects that holds the numerical value."),
-        categoryKey: z.string().describe("The key in the data objects that holds the category label."),
+        dataKey: z.string().describe("The key in the data objects that holds the numerical value. This must be 'value'."),
+        categoryKey: z.string().describe("The key in the data objects that holds the category label. This must be 'name'."),
         xAxisLabel: z.string().optional().describe("The label for the X-axis of the chart."),
         yAxisLabel: z.string().optional().describe("The label for the Y-axis of the chart."),
     }).describe("Configuration for rendering the chart.")
@@ -31,7 +35,7 @@ const ChartDataSchema = z.object({
 const GenerateChartTopicOutputSchema = z.object({
     topic: z.string().describe("The generated topic description for the chart or data. This should be formatted in HTML, and the entire prompt should be bold."),
     instructions: z.string().describe("Specific instructions for the task, formatted in HTML."),
-    chartData: ChartDataSchema.optional().describe("Structured data for generating a visual chart. This should ONLY be generated for Task 1 Academic."),
+    chartData: ChartDataSchema.describe("Structured data for generating a visual chart. This should ONLY be generated for Task 1 Academic."),
 });
 export type GenerateChartTopicOutput = z.infer<typeof GenerateChartTopicOutputSchema>;
 
@@ -57,10 +61,10 @@ User-provided Topic (if any): {{{topic}}}
 Instructions:
 - You must randomly choose to generate data for ONE of the following chart types: 'bar', 'line', or 'pie'.
 - You must generate a 'topic' that accurately describes the data you are creating. The entire topic description must be bold (using <strong> tags).
-- You must generate valid 'chartData'. The 'data' array inside 'chartData' must contain objects. The keys in these objects MUST match the 'dataKey' and 'categoryKey' you define in the 'config'.
-- For a 'line' chart, the 'categoryKey' should represent time (e.g., 'year').
-- For 'bar' or 'pie' charts, the 'categoryKey' should represent distinct categories (e.g., 'country', 'source').
 - The 'instructions' field should always be "Summarise the information by selecting and reporting the main features, and make comparisons where relevant. Write at least 150 words."
+- You must generate valid 'chartData'. 
+- The 'data' array inside 'chartData' must contain objects that follow the schema: {name: string, value: number}.
+- The 'config' object inside 'chartData' must set 'dataKey' to "value" and 'categoryKey' to "name".
 
 Example of a valid output for a 'bar' chart:
 {
@@ -69,14 +73,14 @@ Example of a valid output for a 'bar' chart:
   "chartData": {
     "type": "bar",
     "data": [
-      { "country": "Germany", "percentage": 22 },
-      { "country": "Italy", "percentage": 23 },
-      { "country": "France", "percentage": 21 },
-      { "country": "Spain", "percentage": 20 }
+      { "name": "Germany", "value": 22 },
+      { "name": "Italy", "value": 23 },
+      { "name": "France", "value": 21 },
+      { "name": "Spain", "value": 20 }
     ],
     "config": {
-      "dataKey": "percentage",
-      "categoryKey": "country",
+      "dataKey": "value",
+      "categoryKey": "name",
       "xAxisLabel": "Country",
       "yAxisLabel": "Percentage of Population"
     }
@@ -100,3 +104,4 @@ const generateChartTopicFlow = ai.defineFlow(
     return output!;
   }
 );
+
