@@ -285,48 +285,53 @@ function WritingPractice() {
       const name = data[index][categoryKey];
       return (
         <text x={x} y={y} fill="white" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central">
-          {`${name} (${(percent * 100).toFixed(0)}%)`}
+          {`${name} (${value})`}
         </text>
       );
     };
 
     return (
-      <div className="my-6 h-80 w-full rounded-md border p-4">
-        <ResponsiveContainer width="100%" height="100%">
-          {type === 'bar' ? (
-            <BarChart {...chartProps}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey={categoryKey} label={{ value: xAxisLabel, position: 'insideBottom', offset: -10 }} />
-              <YAxis label={{ value: yAxisLabel, angle: -90, position: 'insideLeft' }} />
-              <Tooltip />
-              <Legend />
-              <Bar dataKey={dataKey} fill="hsl(var(--primary))" />
-            </BarChart>
-          ) : type === 'line' ? (
-            <LineChart {...chartProps}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey={categoryKey} label={{ value: xAxisLabel, position: 'insideBottom', offset: -10 }} />
-              <YAxis label={{ value: yAxisLabel, angle: -90, position: 'insideLeft' }} />
-              <Tooltip />
-              <Legend />
-              <Line type="monotone" dataKey={dataKey} stroke="hsl(var(--primary))" activeDot={{ r: 8 }} />
-            </LineChart>
-          ) : type === 'pie' ? (
-             <PieChart>
-              <Pie data={data} dataKey={dataKey} nameKey={categoryKey} cx="50%" cy="50%" outerRadius={100} fill="hsl(var(--primary))" labelLine={false} label={renderCustomizedLabel} >
-                 {data.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={`hsl(var(--primary), ${1 - (index / data.length) * 0.7})`} />
-                  ))}
-              </Pie>
-              <Tooltip />
-              <Legend />
-            </PieChart>
-          ) : (
-            <div className="flex h-full items-center justify-center bg-muted text-muted-foreground">
-                <p>Unsupported chart type: {type}</p>
-            </div>
-          )}
-        </ResponsiveContainer>
+      <div className="my-6 w-full rounded-md border p-4">
+        <pre className="mb-4 whitespace-pre-wrap rounded bg-muted p-4 text-xs font-light">
+          {JSON.stringify(generatedTopic.chartData, null, 2)}
+        </pre>
+        <div className="h-80 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+            {type === 'bar' ? (
+                <BarChart {...chartProps}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey={categoryKey} label={{ value: xAxisLabel, position: 'insideBottom', offset: -10 }} />
+                <YAxis label={{ value: yAxisLabel, angle: -90, position: 'insideLeft' }} />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey={dataKey} fill="hsl(var(--primary))" />
+                </BarChart>
+            ) : type === 'line' ? (
+                <LineChart {...chartProps}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey={categoryKey} label={{ value: xAxisLabel, position: 'insideBottom', offset: -10 }} />
+                <YAxis label={{ value: yAxisLabel, angle: -90, position: 'insideLeft' }} />
+                <Tooltip />
+                <Legend />
+                <Line type="monotone" dataKey={dataKey} stroke="hsl(var(--primary))" activeDot={{ r: 8 }} />
+                </LineChart>
+            ) : type === 'pie' ? (
+                <PieChart>
+                <Pie data={data} dataKey={dataKey} nameKey={categoryKey} cx="50%" cy="50%" outerRadius={100} fill="hsl(var(--primary))" labelLine={false} label={renderCustomizedLabel} >
+                    {data.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={`hsl(var(--primary), ${1 - (index / data.length) * 0.7})`} />
+                    ))}
+                </Pie>
+                <Tooltip />
+                <Legend />
+                </PieChart>
+            ) : (
+                <div className="flex h-full items-center justify-center bg-muted text-muted-foreground">
+                    <p>Unsupported chart type: {type}</p>
+                </div>
+            )}
+            </ResponsiveContainer>
+        </div>
       </div>
     );
   };
