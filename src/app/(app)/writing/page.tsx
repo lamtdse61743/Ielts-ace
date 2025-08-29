@@ -292,7 +292,7 @@ function WritingPractice() {
     if (!generatedTopic) return null;
 
     // Handle generated image for maps
-    if ('imageUrl' in generatedTopic && generatedTopic.imageUrl) {
+    if ('imageUrl' in generatedTopic && typeof generatedTopic.imageUrl === 'string' && generatedTopic.imageUrl) {
         return (
             <div className="my-6 w-full rounded-md border p-4">
                  <Image
