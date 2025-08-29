@@ -1,43 +1,41 @@
 
 'use server';
 /**
- * @fileOverview Generates IELTS Writing Task 1 (Academic) topics, focusing on bar charts.
+ * @fileOverview Generates IELTS Writing Task 1 (Academic) topics, focusing on multi-line charts.
  *
- * - generateChartTopic - A function that generates a Task 1 Academic topic with a bar chart.
- * - GenerateChartTopicInput - The input type for the function.
- * - GenerateChartTopicOutput - The return type for the function.
+ * - generateLineChartTopic - A function that generates a Task 1 Academic topic with a multi-line chart.
+ * - GenerateLineChartTopicInput - The input type for the function.
+ * - GenerateLineChartTopicOutput - The return type for the function.
  */
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
-const GenerateChartTopicInputSchema = z.object({
+const GenerateLineChartTopicInputSchema = z.object({
   topic: z.string().optional().describe('An optional user-provided topic or keywords.'),
 });
-export type GenerateChartTopicInput = z.infer<typeof GenerateChartTopicInputSchema>;
+export type GenerateLineChartTopicInput = z.infer<typeof GenerateLineChartTopicInputSchema>;
 
-// Ultra-minimal structure: return the complex chart data as a stringified JSON object.
-const GenerateChartTopicOutputSchema = z.object({
+const GenerateLineChartTopicOutputSchema = z.object({
     topic: z.string(),
     instructions: z.string(),
     taskType: z.string(),
-    // We will parse this string on the client side.
     rawData: z.string().describe("A string containing the JSON for the chart's data and configuration."),
 });
-export type GenerateChartTopicOutput = z.infer<typeof GenerateChartTopicOutputSchema>;
+export type GenerateLineChartTopicOutput = z.infer<typeof GenerateLineChartTopicOutputSchema>;
 
 
-export async function generateChartTopic(
-  input: GenerateChartTopicInput
-): Promise<GenerateChartTopicOutput> {
-  return generateChartTopicFlow(input);
+export async function generateLineChartTopic(
+  input: GenerateLineChartTopicInput
+): Promise<GenerateLineChartTopicOutput> {
+  return generateLineChartTopicFlow(input);
 }
 
 const prompt = ai.definePrompt({
-  name: 'generateChartTopicPrompt',
-  input: {schema: GenerateChartTopicInputSchema},
-  output: {schema: GenerateChartTopicOutputSchema},
-  prompt: `You are an expert IELTS exam creator. Your task is to generate a complete writing prompt for IELTS Writing Task 1 (Academic) that involves a bar chart comparing several categories.
+  name: 'generateLineChartTopicPrompt',
+  input: {schema: GenerateLineChartTopicInputSchema},
+  output: {schema: GenerateLineChartTopicOutputSchema},
+  prompt: `You are an expert IELTS exam creator. Your task is to generate a complete writing prompt for IELTS Writing Task 1 (Academic) that involves a multi-line chart comparing several categories over time.
 
 {{#if topic}}
 User-provided Topic: {{{topic}}}
@@ -48,35 +46,36 @@ Please generate a random, high-quality topic appropriate for an IELTS exam.
 
 **CRITICAL REQUIREMENTS:**
 - The 'rawData' field MUST be a string containing a valid JSON object.
-- The JSON object inside 'rawData' MUST have a 'type' property set to "bar".
-- The topic must be varied. Do NOT repeatedly use the same topic. Choose from a diverse range of subjects like economics (e.g., average salaries for different professions), environment (e.g., waste recycling rates by material), social trends (e.g., preferred holiday destinations), or technology (e.g., percentage of people using different social media platforms).
-- The prompt MUST be specific and compare different items in a single category. Invent a realistic context, including a specific country, city, or year (e.g., "in the UK in 2022," "in the city of Sydney," "for the company TechCorp").
-- Generate a random number of categories to compare, between 4 and 6.
-- Data MUST be realistic.
+- The JSON object inside 'rawData' MUST have a 'type' property set to "line".
+- The topic must be varied. Do NOT repeatedly use the same topic. Choose from a diverse range of subjects like economics, environment, social trends, or technology.
+- The prompt MUST be specific and compare different items over time. Invent a realistic context, including a specific country, city, or year range (e.g., "in the UK between 2015 and 2025,").
+- Generate a random number of data series (lines on the chart), between 3 and 5.
+- Generate a random number of time points (e.g., years), between 5 and 8.
+- Data MUST be realistic. The lines should show different trends (some increasing, some decreasing, some fluctuating) and should intersect at least once to provide clear points for comparison.
 
 **Response Instructions:**
 - You MUST generate a response where the 'rawData' field is a stringified JSON object.
-- The 'topic' field MUST be a bold HTML string describing the visual.
-- Set 'taskType' to exactly "bar".
+- The 'topic' field MUST be a bold HTML string describing the chart.
+- Set 'taskType' to exactly "line".
 - The 'instructions' field should always be exactly "Summarise the information by selecting and reporting the main features, and make comparisons where relevant. Write at least 150 words."
 
-**Example for the 'rawData' string contents (Note the single data point per category):**
+**Example for the 'rawData' string contents:**
 \`\`\`json
 {
-  "type": "bar",
+  "type": "line",
   "data": [
-    { "Profession": "Teachers", "Salary": 45000 },
-    { "Profession": "Doctors", "Salary": 75000 },
-    { "Profession": "Engineers", "Salary": 68000 },
-    { "Profession": "Nurses", "Salary": 52000 },
-    { "Profession": "Lawyers", "Salary": 82000 }
+    { "Year": "2010", "Beef": 120, "Chicken": 80, "Lamb": 60 },
+    { "Year": "2012", "Beef": 110, "Chicken": 90, "Lamb": 65 },
+    { "Year": "2014", "Beef": 130, "Chicken": 95, "Lamb": 60 },
+    { "Year": "2016", "Beef": 115, "Chicken": 105, "Lamb": 70 },
+    { "Year": "2018", "Beef": 125, "Chicken": 120, "Lamb": 75 },
+    { "Year": "2020", "Beef": 135, "Chicken": 115, "Lamb": 80 }
   ],
   "config": {
-    "dataKey": "Salary",
-    "categoryKey": "Profession",
-    "series": ["Salary"],
-    "xAxisLabel": "Profession",
-    "yAxisLabel": "Average Annual Salary (USD)"
+    "categoryKey": "Year",
+    "series": ["Beef", "Chicken", "Lamb"],
+    "xAxisLabel": "Year",
+    "yAxisLabel": "Consumption (in thousands of tonnes)"
   }
 }
 \`\`\`
@@ -85,11 +84,11 @@ Your entire response must be in a single JSON object that strictly follows the o
 `,
 });
 
-const generateChartTopicFlow = ai.defineFlow(
+const generateLineChartTopicFlow = ai.defineFlow(
   {
-    name: 'generateChartTopicFlow',
-    inputSchema: GenerateChartTopicInputSchema,
-    outputSchema: GenerateChartTopicOutputSchema,
+    name: 'generateLineChartTopicFlow',
+    inputSchema: GenerateLineChartTopicInputSchema,
+    outputSchema: GenerateLineChartTopicOutputSchema,
   },
   async input => {
     const {output} = await prompt(input);

@@ -13,8 +13,8 @@ import {
   type EssayFeedbackOutput,
 } from '@/ai/flows/essay-feedback';
 import {
-  generateChartTopic,
-} from '@/ai/flows/generate-chart-topic';
+  generateBarChartTopic,
+} from '@/ai/flows/generate-bar-chart-topic';
 import {
   generateWritingTask1General,
   type GenerateWritingTask1GeneralOutput,
@@ -172,7 +172,7 @@ function WritingPractice() {
       let result: GeneratedTopic | null = null;
       if (data.task === 'Task 1') {
         if (data.trainingType === 'Academic') {
-          const rawResult = await generateChartTopic({ topic: data.topic });
+          const rawResult = await generateBarChartTopic({ topic: data.topic });
           if (rawResult && rawResult.rawData) {
              result = {
                 topic: rawResult.topic,
@@ -224,7 +224,7 @@ function WritingPractice() {
         topic: generatedTopic.topic,
         trainingType: currentTrainingType,
         task: task,
-        createdAt: new date().toISOString(),
+        createdAt: new Date().toISOString(),
         feedback,
       };
       setAnalyzedEssay(newAnalyzedEssay);
@@ -825,5 +825,3 @@ export default function WritingPage() {
     </Suspense>
   );
 }
-
-    
