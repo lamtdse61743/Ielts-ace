@@ -44,7 +44,7 @@ User-provided Topic (if any): {{{topic}}}
 
 Instructions:
 - For Task 1 (Academic): Generate a description of a chart, graph, table, or diagram. The topic should be suitable for data visualization (e.g., population trends, economic data, process diagrams). The instruction should be "Summarise the information by selecting and reporting the main features, and make comparisons where relevant. Write at least 150 words."
-- For Task 1 (General Training): Generate a situation for a letter. The topic should be a common, everyday scenario requiring a formal, semi-formal, or informal letter. Please ensure variety in the prompts. Generate scenarios such as:
+- For Task 1 (General Training): Generate a situation for a letter. The topic should be a common, everyday scenario requiring a formal, semi-formal, or informal letter, and the generated 'topic' text must be formatted as HTML with the entire scenario in bold (using <strong> tags). Please ensure variety in the prompts. Generate scenarios such as:
     - Writing to a friend or family member about a recent event (e.g., a holiday, a new job).
     - Requesting information from a company or organization (e.g., about a course, a service, a product).
     - Making a complaint (e.g., about a faulty product, poor service, a problem with accommodation).
