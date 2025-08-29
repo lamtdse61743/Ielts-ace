@@ -50,8 +50,8 @@ Please generate a random, high-quality topic appropriate for an IELTS exam.
 - The topic must be varied. Do NOT repeatedly use the same topic. Choose from a diverse range of subjects like demographics (e.g., population by age group in different cities), economics (e.g., company revenue from different sectors), or environment (e.g., energy production from various sources in different countries).
 - The prompt MUST be specific. Invent a realistic context, including a specific country, city, or year (e.g., "in Germany in 2022," "for the city of Sydney," "for the year 2021").
 - Generate a random number of primary categories (the bars on the x-axis) between 4 and 6.
-- Generate a random number of data series (the segments within each bar) between 3 and 5. The total for each bar should ideally sum to 100 if the data represents percentages.
-- Data MUST be realistic.
+- Generate a random number of data series (the segments within each bar) between 3 and 5.
+- Data MUST be realistic and tell a story. The numbers should be plausible for the context. The segments within each bar should have a logical relationship. If the data represents percentages, the segments MUST sum to exactly 100 for each bar. The composition of each bar should be different enough to allow for meaningful comparison.
 
 **Response Instructions:**
 - You MUST generate a response where the 'rawData' field is a stringified JSON object.
@@ -59,7 +59,7 @@ Please generate a random, high-quality topic appropriate for an IELTS exam.
 - Set 'taskType' to exactly "bar".
 - The 'instructions' field should always be exactly "Summarise the information by selecting and reporting the main features, and make comparisons where relevant. Write at least 150 words."
 
-**Example for a STACKED bar chart in the 'rawData' string contents:**
+**Example for a STACKED bar chart in the 'rawData' string contents (representing percentages):**
 \`\`\`json
 {
   "type": "bar",

@@ -53,7 +53,7 @@ Please generate a random, high-quality topic appropriate for an IELTS exam.
 - The prompt MUST be specific. Invent a realistic context, including a specific country, city, or year (e.g., "in the UK in 2020," "for residents of Paris," "for the year 2023").
 - Generate a random number of primary categories (the groups on the x-axis) between 4 and 6.
 - Generate a random number of data series (the bars within each group) between 2 and 4.
-- Data MUST be realistic.
+- Data MUST be realistic and tell a story. The numbers should be plausible for the context (e.g., millions for sales figures, percentages for population segments). The values for each category and series should be distinct enough to allow for meaningful comparison. Avoid generating data where all bars are roughly the same height.
 
 **Response Instructions:**
 - You MUST generate a response where the 'rawData' field is a stringified JSON object.
