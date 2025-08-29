@@ -12,9 +12,9 @@ import {
   type EssayFeedbackOutput,
 } from '@/ai/flows/essay-feedback';
 import {
-  generateWritingTask1Academic,
-  type GenerateWritingTask1AcademicOutput,
-} from '@/ai/flows/generate-writing-task1-academic';
+  generateChartTopic,
+  type GenerateChartTopicOutput,
+} from '@/ai/flows/generate-chart-topic';
 import {
   generateWritingTask1General,
   type GenerateWritingTask1GeneralOutput,
@@ -93,7 +93,7 @@ const TopicFormSchema = z.object({
 });
 type TopicFormValues = z.infer<typeof TopicFormSchema>;
 
-type GeneratedTopic = (GenerateWritingTask1AcademicOutput & { chartData?: any }) | GenerateWritingTask1GeneralOutput | GenerateWritingTask2Output;
+type GeneratedTopic = GenerateChartTopicOutput | GenerateWritingTask1GeneralOutput | GenerateWritingTask2Output;
 
 const EssayFormSchema = z.object({
   essay: z.string().min(50, 'Your essay should be at least 50 words.'),
@@ -172,7 +172,7 @@ function WritingPractice() {
       let result: GeneratedTopic | null = null;
       if (data.task === 'Task 1') {
         if (data.trainingType === 'Academic') {
-          result = await generateWritingTask1Academic({ topic: data.topic });
+          result = await generateChartTopic({ topic: data.topic });
         } else {
           result = await generateWritingTask1General({ topic: data.topic });
         }
@@ -337,8 +337,8 @@ function WritingPractice() {
             ) : type === 'pie' ? (
                 <PieChart>
                 <Pie data={data} dataKey={dataKey} nameKey={categoryKey} cx="50%" cy="50%" outerRadius={100} fill="hsl(var(--primary))" labelLine={false} label={renderCustomizedLabel} >
-                    {data.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={`hsl(var(--primary), ${1 - (index / data.length) * 0.7})`} />
+                    {(data as any[]).map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={`hsl(var(--primary), ${1 - (index / (data as any[]).length) * 0.7})`} />
                     ))}
                 </Pie>
                 <Tooltip />
@@ -475,7 +475,7 @@ function WritingPractice() {
                   className="prose dark:prose-invert max-w-none"
                   dangerouslySetInnerHTML={{ __html: generatedTopic.topic }}
                 />
-                {/* {renderGeneratedChart()} */}
+                {renderGeneratedChart()}
                 <div
                   className="prose dark:prose-invert max-w-none rounded-md border bg-muted p-4 italic"
                   dangerouslySetInnerHTML={{
