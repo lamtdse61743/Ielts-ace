@@ -14,7 +14,6 @@ import {
 } from '@/ai/flows/essay-feedback';
 import {
   generateChartTopic,
-  convertToNestedStructure,
 } from '@/ai/flows/generate-chart-topic';
 import {
   generateWritingTask1General,
@@ -93,9 +92,8 @@ const TopicFormSchema = z.object({
 type TopicFormValues = z.infer<typeof TopicFormSchema>;
 
 type GeneratedTopic =
-  | (ReturnType<typeof convertToNestedStructure>)
-  | GenerateWritingTask1GeneralOutput
-  | GenerateWritingTask2Output;
+  | (GenerateWritingTask1GeneralOutput & { chartData?: any })
+  | (GenerateWritingTask2Output & { chartData?: any });
 
 const EssayFormSchema = z.object({
   essay: z.string().min(50, 'Your essay should be at least 50 words.'),
@@ -174,9 +172,13 @@ function WritingPractice() {
       let result: GeneratedTopic | null = null;
       if (data.task === 'Task 1') {
         if (data.trainingType === 'Academic') {
-          const flatResult = await generateChartTopic({ topic: data.topic });
-          if (flatResult) {
-            result = convertToNestedStructure(flatResult);
+          const rawResult = await generateChartTopic({ topic: data.topic });
+          if (rawResult && rawResult.rawData) {
+             result = {
+                topic: rawResult.topic,
+                instructions: rawResult.instructions,
+                chartData: JSON.parse(rawResult.rawData)
+             };
           }
         } else {
           result = await generateWritingTask1General({ topic: data.topic });
