@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview Generates IELTS Writing Task 1 (Academic) topics, focusing on multi-line charts.
@@ -36,7 +37,7 @@ const prompt = ai.definePrompt({
   name: 'generateChartTopicPrompt',
   input: {schema: GenerateChartTopicInputSchema},
   output: {schema: GenerateChartTopicOutputSchema},
-  prompt: `You are an expert IELTS exam creator. Your task is to generate a complete writing prompt for IELTS Writing Task 1 (Academic) that involves a multi-line chart.
+  prompt: `You are an expert IELTS exam creator. Your task is to generate a complete writing prompt for IELTS Writing Task 1 (Academic) that involves a multi-line chart with realistic, fluctuating data.
 
 User-provided Topic (if any): {{{topic}}}
 
@@ -44,7 +45,7 @@ User-provided Topic (if any): {{{topic}}}
 - The 'rawData' field MUST be a string containing a valid JSON object.
 - The JSON object inside 'rawData' MUST have a 'type' property set to "line".
 - Generate exactly 3-4 different categories over 5-7 time points.
-- All data values must be realistic numbers.
+- **Data MUST be realistic and varied.** The lines should not all go in the same direction. Some should increase, some decrease, and some should fluctuate. The lines MUST cross at least once.
 
 **Response Instructions:**
 - You MUST generate a response where the 'rawData' field is a stringified JSON object.
@@ -53,15 +54,17 @@ User-provided Topic (if any): {{{topic}}}
 - The 'instructions' field should always be exactly "Summarise the information by selecting and reporting the main features, and make comparisons where relevant. Write at least 150 words."
 - If the user provides a topic, create a prompt related to it. If not, generate a random, high-quality topic appropriate for an IELTS exam.
 
-**Example for the 'rawData' string contents:**
+**Example for the 'rawData' string contents (Note the fluctuating data):**
 \`\`\`json
 {
   "type": "line",
   "data": [
     { "Year": "2010", "Beef": 1.5, "Chicken": 2.2, "Pork": 1.8 },
-    { "Year": "2015", "Beef": 1.2, "Chicken": 2.8, "Pork": 1.7 },
-    { "Year": "2020", "Beef": 1.0, "Chicken": 3.5, "Pork": 1.5 },
-    { "Year": "2025", "Beef": 0.8, "Chicken": 4.0, "Pork": 1.4 }
+    { "Year": "2012", "Beef": 1.6, "Chicken": 2.0, "Pork": 2.1 },
+    { "Year": "2014", "Beef": 1.2, "Chicken": 2.8, "Pork": 1.7 },
+    { "Year": "2016", "Beef": 1.4, "Chicken": 2.6, "Pork": 2.3 },
+    { "Year": "2018", "Beef": 1.0, "Chicken": 3.5, "Pork": 1.5 },
+    { "Year": "2020", "Beef": 1.1, "Chicken": 3.2, "Pork": 1.9 }
   ],
   "config": {
     "dataKey": "Beef",
@@ -88,3 +91,4 @@ const generateChartTopicFlow = ai.defineFlow(
     return output!;
   }
 );
+
