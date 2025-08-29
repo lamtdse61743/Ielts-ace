@@ -1,0 +1,95 @@
+
+'use server';
+/**
+ * @fileOverview Generates IELTS Writing Task 1 (Academic) topics, focusing on stacked bar charts.
+ *
+ * - generateStackedBarChartTopic - A function that generates a Task 1 Academic topic with a stacked bar chart.
+ * - GenerateStackedBarChartTopicInput - The input type for the function.
+ * - GenerateStackedBarChartTopicOutput - The return type for the function.
+ */
+
+import {ai} from '@/ai/genkit';
+import {z} from 'genkit';
+
+const GenerateStackedBarChartTopicInputSchema = z.object({
+  topic: z.string().optional().describe('An optional user-provided topic or keywords.'),
+});
+export type GenerateStackedBarChartTopicInput = z.infer<typeof GenerateStackedBarChartTopicInputSchema>;
+
+const GenerateStackedBarChartTopicOutputSchema = z.object({
+    topic: z.string(),
+    instructions: z.string(),
+    taskType: z.string(),
+    rawData: z.string().describe("A string containing the JSON for the chart's data and configuration."),
+});
+export type GenerateStackedBarChartTopicOutput = z.infer<typeof GenerateStackedBarChartTopicOutputSchema>;
+
+
+export async function generateStackedBarChartTopic(
+  input: GenerateStackedBarChartTopicInput
+): Promise<GenerateStackedBarChartTopicOutput> {
+  return generateStackedBarChartTopicFlow(input);
+}
+
+const prompt = ai.definePrompt({
+  name: 'generateStackedBarChartTopicPrompt',
+  input: {schema: GenerateStackedBarChartTopicInputSchema},
+  output: {schema: GenerateStackedBarChartTopicOutputSchema},
+  prompt: `You are an expert IELTS exam creator. Your task is to generate a complete writing prompt for IELTS Writing Task 1 (Academic) that involves a STACKED bar chart comparing the composition of several categories.
+
+{{#if topic}}
+User-provided Topic: {{{topic}}}
+Please create a prompt related to this topic.
+{{else}}
+Please generate a random, high-quality topic appropriate for an IELTS exam.
+{{/if}}
+
+**CRITICAL REQUIREMENTS:**
+- The 'rawData' field MUST be a string containing a valid JSON object.
+- The JSON object inside 'rawData' MUST have a 'type' property set to "bar".
+- The topic must be varied. Do NOT repeatedly use the same topic. Choose from a diverse range of subjects like demographics (e.g., population by age group in different cities), economics (e.g., company revenue from different sectors), or environment (e.g., energy production from various sources in different countries).
+- The prompt MUST be specific. Invent a realistic context, including a specific country, city, or year (e.g., "in Germany in 2022," "for the city of Sydney," "for the year 2021").
+- Generate a random number of primary categories (the bars on the x-axis) between 4 and 6.
+- Generate a random number of data series (the segments within each bar) between 3 and 5. The total for each bar should ideally sum to 100 if the data represents percentages.
+- Data MUST be realistic.
+
+**Response Instructions:**
+- You MUST generate a response where the 'rawData' field is a stringified JSON object.
+- The 'topic' field MUST be a bold HTML string describing the visual.
+- Set 'taskType' to exactly "bar".
+- The 'instructions' field should always be exactly "Summarise the information by selecting and reporting the main features, and make comparisons where relevant. Write at least 150 words."
+
+**Example for a STACKED bar chart in the 'rawData' string contents:**
+\`\`\`json
+{
+  "type": "bar",
+  "data": [
+    { "City": "Paris", "Under 18": 20, "18-65": 65, "Over 65": 15 },
+    { "City": "London", "Under 18": 18, "18-65": 68, "Over 65": 14 },
+    { "City": "New York", "Under 18": 22, "18-65": 60, "Over 65": 18 },
+    { "City": "Tokyo", "Under 18": 15, "18-65": 60, "Over 65": 25 }
+  ],
+  "config": {
+    "categoryKey": "City",
+    "series": ["Under 18", "18-65", "Over 65"],
+    "xAxisLabel": "City",
+    "yAxisLabel": "Percentage of Population (%)"
+  }
+}
+\`\`\`
+
+Your entire response must be in a single JSON object that strictly follows the output schema.
+`,
+});
+
+const generateStackedBarChartTopicFlow = ai.defineFlow(
+  {
+    name: 'generateStackedBarChartTopicFlow',
+    inputSchema: GenerateStackedBarChartTopicInputSchema,
+    outputSchema: GenerateStackedBarChartTopicOutputSchema,
+  },
+  async input => {
+    const {output} = await prompt(input);
+    return output!;
+  }
+);

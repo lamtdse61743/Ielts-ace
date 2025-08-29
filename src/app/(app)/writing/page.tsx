@@ -13,8 +13,8 @@ import {
   type EssayFeedbackOutput,
 } from '@/ai/flows/essay-feedback';
 import {
-  generateBarChartTopic,
-} from '@/ai/flows/generate-bar-chart-topic';
+  generateStackedBarChartTopic,
+} from '@/ai/flows/generate-stacked-bar-chart-topic';
 import {
   generateLineChartTopic,
 } from '@/ai/flows/generate-chart-topic';
@@ -176,7 +176,7 @@ function WritingPractice() {
       if (data.task === 'Task 1') {
         if (data.trainingType === 'Academic') {
           // TODO: Add UI to select chart type
-          const rawResult = await generateBarChartTopic({ topic: data.topic });
+          const rawResult = await generateStackedBarChartTopic({ topic: data.topic });
           if (rawResult && rawResult.rawData) {
              result = {
                 topic: rawResult.topic,
@@ -392,7 +392,7 @@ function WritingPractice() {
                 <Tooltip />
                 <Legend wrapperStyle={{ bottom: 0, left: 20 }} />
                  {series?.map((seriesName: string, index: number) => (
-                  <Bar key={seriesName} dataKey={seriesName} fill={COLORS[index % COLORS.length]} />
+                  <Bar key={seriesName} dataKey={seriesName} stackId="a" fill={COLORS[index % COLORS.length]} />
                 ))}
               </BarChart>
             ) : type === 'line' ? (
