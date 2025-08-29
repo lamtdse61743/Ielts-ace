@@ -276,6 +276,20 @@ function WritingPractice() {
       margin: { top: 5, right: 20, left: 10, bottom: 20 },
     };
 
+    const RADIAN = Math.PI / 180;
+    const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, index }: any) => {
+      const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+      const x = cx + radius * Math.cos(-midAngle * RADIAN);
+      const y = cy + radius * Math.sin(-midAngle * RADIAN);
+      const value = data[index][dataKey];
+      const name = data[index][categoryKey];
+      return (
+        <text x={x} y={y} fill="white" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central">
+          {`${name} (${value})`}
+        </text>
+      );
+    };
+
     return (
       <div className="my-6 h-80 w-full rounded-md border p-4">
         <ResponsiveContainer width="100%" height="100%">
@@ -299,7 +313,7 @@ function WritingPractice() {
             </LineChart>
           ) : type === 'pie' ? (
              <PieChart>
-              <Pie data={data} dataKey={dataKey} nameKey={categoryKey} cx="50%" cy="50%" outerRadius={100} fill="hsl(var(--primary))" label >
+              <Pie data={data} dataKey={dataKey} nameKey={categoryKey} cx="50%" cy="50%" outerRadius={100} fill="hsl(var(--primary))" labelLine={false} label={renderCustomizedLabel} >
                  {data.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={`hsl(var(--primary), ${1 - (index / data.length) * 0.7})`} />
                   ))}
