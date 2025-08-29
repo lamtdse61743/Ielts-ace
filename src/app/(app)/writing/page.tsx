@@ -14,7 +14,7 @@ import {
 } from '@/ai/flows/essay-feedback';
 import {
   generateChartTopic,
-  type GenerateChartTopicOutput,
+  convertToNestedStructure,
 } from '@/ai/flows/generate-chart-topic';
 import {
   generateWritingTask1General,
@@ -93,7 +93,7 @@ const TopicFormSchema = z.object({
 type TopicFormValues = z.infer<typeof TopicFormSchema>;
 
 type GeneratedTopic =
-  | GenerateChartTopicOutput
+  | (ReturnType<typeof convertToNestedStructure>)
   | GenerateWritingTask1GeneralOutput
   | GenerateWritingTask2Output;
 
@@ -174,7 +174,10 @@ function WritingPractice() {
       let result: GeneratedTopic | null = null;
       if (data.task === 'Task 1') {
         if (data.trainingType === 'Academic') {
-          result = await generateChartTopic({ topic: data.topic });
+          const flatResult = await generateChartTopic({ topic: data.topic });
+          if (flatResult) {
+            result = convertToNestedStructure(flatResult);
+          }
         } else {
           result = await generateWritingTask1General({ topic: data.topic });
         }
