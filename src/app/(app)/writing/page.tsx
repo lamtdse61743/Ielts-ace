@@ -295,7 +295,7 @@ function WritingPractice() {
 
     const chartProps = {
       data,
-      margin: { top: 5, right: 20, left: 10, bottom: 20 },
+      margin: { top: 5, right: 20, left: 20, bottom: 20 },
     };
 
     const RADIAN = Math.PI / 180;
@@ -303,23 +303,31 @@ function WritingPractice() {
       const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
       const x = cx + radius * Math.cos(-midAngle * RADIAN);
       const y = cy + radius * Math.sin(-midAngle * RADIAN);
-      const value = data[index][dataKey];
-      const name = data[index][categoryKey];
+      const value = data[index][dataKey as keyof typeof data[number]];
+      const name = data[index][categoryKey as keyof typeof data[number]];
+      
+      // Check if text will fit
+      const text = `${name} (${(percent * 100).toFixed(0)}%)`;
+      const textWidth = text.length * 6; // Approximate width
+      if (textWidth > (outerRadius - innerRadius)) return null;
+
       return (
-        <text x={x} y={y} fill="white" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central">
-          {`${name} (${value})`}
+        <text x={x} y={y} fill="white" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central" fontSize="12">
+          {text}
         </text>
       );
     };
 
+    const COLORS = ['#5DADE2', '#008080', '#2E86C1', '#17A589', '#85C1E9', '#48C9B0'];
+
     return (
       <div className="my-6 w-full rounded-md border p-4">
-        <div className="h-80 w-full">
+        <div className="h-96 w-full">
             <ResponsiveContainer width="100%" height="100%">
             {type === 'bar' ? (
                 <BarChart {...chartProps}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey={categoryKey} label={{ value: xAxisLabel, position: 'insideBottom', offset: -10 }} />
+                <XAxis dataKey={categoryKey} angle={-30} textAnchor="end" height={60} interval={0} label={{ value: xAxisLabel, position: 'insideBottom', offset: -15 }} />
                 <YAxis label={{ value: yAxisLabel, angle: -90, position: 'insideLeft' }} />
                 <Tooltip />
                 <Legend />
@@ -328,7 +336,7 @@ function WritingPractice() {
             ) : type === 'line' ? (
                 <LineChart {...chartProps}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey={categoryKey} label={{ value: xAxisLabel, position: 'insideBottom', offset: -10 }} />
+                <XAxis dataKey={categoryKey} angle={-30} textAnchor="end" height={60} interval={0} label={{ value: xAxisLabel, position: 'insideBottom', offset: -15 }} />
                 <YAxis label={{ value: yAxisLabel, angle: -90, position: 'insideLeft' }} />
                 <Tooltip />
                 <Legend />
@@ -336,9 +344,9 @@ function WritingPractice() {
                 </LineChart>
             ) : type === 'pie' ? (
                 <PieChart>
-                <Pie data={data} dataKey={dataKey} nameKey={categoryKey} cx="50%" cy="50%" outerRadius={100} fill="hsl(var(--primary))" labelLine={false} label={renderCustomizedLabel} >
+                <Pie data={data} dataKey={dataKey} nameKey={categoryKey} cx="50%" cy="50%" outerRadius={120} labelLine={false} label={renderCustomizedLabel} >
                     {(data as any[]).map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={`hsl(var(--primary), ${1 - (index / (data as any[]).length) * 0.7})`} />
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                 </Pie>
                 <Tooltip />
