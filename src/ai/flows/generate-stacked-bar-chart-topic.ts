@@ -35,7 +35,7 @@ const prompt = ai.definePrompt({
   name: 'generateStackedBarChartTopicPrompt',
   input: {schema: GenerateStackedBarChartTopicInputSchema},
   output: {schema: GenerateStackedBarChartTopicOutputSchema},
-  prompt: `You are an expert IELTS exam creator. Your task is to generate a complete writing prompt for IELTS Writing Task 1 (Academic) that involves a STACKED bar chart comparing the composition of several categories.
+  prompt: `You are an expert IELTS exam creator. Your task is to generate a complete writing prompt for IELTS Writing Task 1 (Academic) that involves a STACKED bar chart comparing the composition of several categories. The data can be in absolute numbers or percentages.
 
 {{#if topic}}
 User-provided Topic: {{{topic}}}
@@ -59,21 +59,21 @@ Please generate a random, high-quality topic appropriate for an IELTS exam.
 - Set 'taskType' to exactly "bar".
 - The 'instructions' field should always be exactly "Summarise the information by selecting and reporting the main features, and make comparisons where relevant. Write at least 150 words."
 
-**Example for a STACKED bar chart in the 'rawData' string contents (representing percentages):**
+**Example for a STACKED bar chart in the 'rawData' string contents (representing absolute values):**
 \`\`\`json
 {
   "type": "bar",
   "data": [
-    { "City": "Paris", "Under 18": 20, "18-65": 65, "Over 65": 15 },
-    { "City": "London", "Under 18": 18, "18-65": 68, "Over 65": 14 },
-    { "City": "New York", "Under 18": 22, "18-65": 60, "Over 65": 18 },
-    { "City": "Tokyo", "Under 18": 15, "18-65": 60, "Over 65": 25 }
+    { "Material": "Paper", "New York": 120, "Los Angeles": 150, "Chicago": 90 },
+    { "Material": "Glass", "New York": 80, "Los Angeles": 100, "Chicago": 70 },
+    { "Material": "Plastics", "New York": 90, "Los Angeles": 110, "Chicago": 80 },
+    { "Material": "Metals", "New York": 50, "Los Angeles": 60, "Chicago": 40 }
   ],
   "config": {
-    "categoryKey": "City",
-    "series": ["Under 18", "18-65", "Over 65"],
-    "xAxisLabel": "City",
-    "yAxisLabel": "Percentage of Population (%)"
+    "categoryKey": "Material",
+    "series": ["New York", "Los Angeles", "Chicago"],
+    "xAxisLabel": "Material",
+    "yAxisLabel": "Waste Recycled (in thousands of tonnes)"
   }
 }
 \`\`\`
