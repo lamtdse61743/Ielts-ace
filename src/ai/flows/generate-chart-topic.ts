@@ -21,17 +21,12 @@ const PromptInputSchema = GenerateChartTopicInputSchema.extend({
     taskType: z.string().describe("The type of visual task to generate."),
 });
 
-const ChartDataPointSchema = z.object({
-    name: z.string().describe("The label for a data point (e.g., a year, a country). This will be the category."),
-    value: z.number().describe("The numerical value for a data point."),
-});
-
 const MultiSeriesChartDataPointSchema = z.object({}).catchall(z.union([z.string(), z.number()]));
 
 
 const ChartDataSchema = z.object({
     type: z.enum(['bar', 'line', 'pie', 'table', 'mixed']).describe("The type of chart to represent the data."),
-    data: z.array(z.union([ChartDataPointSchema, MultiSeriesChartDataPointSchema])).describe("An array of data objects for the chart. For multi-series line charts, each object represents a point on the category axis (e.g., a year) and contains key-value pairs for each series."),
+    data: z.array(MultiSeriesChartDataPointSchema).describe("An array of data objects for the chart. For multi-series line charts, each object represents a point on the category axis (e.g., a year) and contains key-value pairs for each series. For single-series charts, each object should have a 'name' and 'value' property."),
     config: z.object({
         dataKey: z.string().describe("The key in the data objects that holds the primary numerical value. This must be 'value' for single-series charts."),
         categoryKey: z.string().describe("The key in the data objects that holds the category label. This must be 'name' for single-series charts."),
@@ -86,7 +81,7 @@ User-provided Topic (if any): {{{topic}}}
     - You MUST generate structured JSON in the 'chartData' field.
     - The 'topic' field MUST be a bold HTML string describing the visual.
     - Set 'taskType' to the one provided in the input (e.g., 'bar').
-    - For the data, the 'name' property should be the category and the 'value' property should be the number.
+    - For the data, each object must have a 'name' property for the category and a 'value' property for the number.
     - In the config, 'dataKey' must be 'value' and 'categoryKey' must be 'name'.
     - Omit the 'visualDescription' and 'imageUrl' fields.
 
