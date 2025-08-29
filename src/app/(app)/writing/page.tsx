@@ -266,7 +266,9 @@ function WritingPractice() {
     : [];
 
   const renderGeneratedChart = () => {
-    if (!generatedTopic?.chartData) return null;
+    if (!generatedTopic?.chartData) {
+      return null;
+    }
 
     const { type, data, config } = generatedTopic.chartData;
     const { dataKey, categoryKey, xAxisLabel, yAxisLabel } = config;
