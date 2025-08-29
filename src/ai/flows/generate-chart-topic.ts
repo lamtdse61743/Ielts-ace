@@ -39,7 +39,12 @@ const prompt = ai.definePrompt({
   output: {schema: GenerateChartTopicOutputSchema},
   prompt: `You are an expert IELTS exam creator. Your task is to generate a complete writing prompt for IELTS Writing Task 1 (Academic) that involves a multi-line chart with realistic, fluctuating data.
 
-User-provided Topic (if any): {{{topic}}}
+{{#if topic}}
+User-provided Topic: {{{topic}}}
+Please create a prompt related to this topic.
+{{else}}
+Please generate a random, high-quality topic appropriate for an IELTS exam.
+{{/if}}
 
 **CRITICAL REQUIREMENTS:**
 - The 'rawData' field MUST be a string containing a valid JSON object.
@@ -54,7 +59,6 @@ User-provided Topic (if any): {{{topic}}}
 - The 'topic' field MUST be a bold HTML string describing the visual.
 - Set 'taskType' to exactly "line".
 - The 'instructions' field should always be exactly "Summarise the information by selecting and reporting the main features, and make comparisons where relevant. Write at least 150 words."
-- If the user provides a topic, create a prompt related to it. If not, generate a random, high-quality topic appropriate for an IELTS exam.
 
 **Example for the 'rawData' string contents (Note the fluctuating data and specific context):**
 \`\`\`json
