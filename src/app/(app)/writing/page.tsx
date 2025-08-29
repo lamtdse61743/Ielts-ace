@@ -17,7 +17,7 @@ import {
 } from '@/ai/flows/generate-stacked-bar-chart-topic';
 import {
   generateLineChartTopic,
-} from '@/ai/flows/generate-chart-topic';
+} from '@/ai/flows/generate-line-chart-topic';
 import {
   generateWritingTask1General,
   type GenerateWritingTask1GeneralOutput,
@@ -335,6 +335,14 @@ function WritingPractice() {
     const chartProps = {
       margin: { top: 20, right: 30, left: 20, bottom: 40 },
     };
+    
+    const barChartProps = {
+        margin: { top: 20, right: 30, left: 40, bottom: 40 },
+    }
+    
+    const lineChartProps = {
+        margin: { top: 20, right: 30, left: 40, bottom: 40 },
+    }
 
     const COLORS = ["#ef4444", "#3b82f6", "#8b5cf6", "#10b981", "#f97316"];
 
@@ -385,10 +393,10 @@ function WritingPractice() {
         <div className="h-96 w-full">
           <ResponsiveContainer width="100%" height="100%">
             {type === 'bar' ? (
-              <BarChart data={data} {...chartProps}>
+              <BarChart data={data} {...barChartProps}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey={categoryKey} angle={-30} textAnchor="end" height={60} interval={0} label={{ value: xAxisLabel, position: 'insideBottom', offset: -15 }} />
-                <YAxis label={{ value: yAxisLabel, angle: -90, position: 'insideLeft', offset: -5 }} />
+                <YAxis label={{ value: yAxisLabel, angle: -90, position: 'insideLeft' }} />
                 <Tooltip />
                 <Legend wrapperStyle={{ bottom: 0, left: 20 }} />
                  {series?.map((seriesName: string, index: number) => (
@@ -396,10 +404,10 @@ function WritingPractice() {
                 ))}
               </BarChart>
             ) : type === 'line' ? (
-              <LineChart data={data} margin={{ top: 20, right: 30, left: 30, bottom: 40 }}>
+              <LineChart data={data} {...lineChartProps}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey={categoryKey} angle={-30} textAnchor="end" height={60} interval={0} label={{ value: xAxisLabel, position: 'insideBottom', offset: -15 }} />
-                <YAxis label={{ value: yAxisLabel, angle: -90, position: 'insideLeft', offset: -5 }} />
+                <YAxis label={{ value: yAxisLabel, angle: -90, position: 'insideLeft' }} />
                 <Tooltip />
                 <Legend wrapperStyle={{ bottom: 0, left: 20 }}/>
                 {series?.map((seriesName: string, index: number) => (
