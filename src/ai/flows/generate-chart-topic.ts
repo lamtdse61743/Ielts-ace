@@ -10,6 +10,7 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import { googleAI } from '@genkit-ai/googleai';
 
 const GenerateChartTopicInputSchema = z.object({
   topic: z.string().optional().describe('An optional user-provided topic or keywords.'),
@@ -41,6 +42,7 @@ const GenerateChartTopicOutputSchema = z.object({
     instructions: z.string().describe("Specific instructions for the task, formatted in HTML."),
     chartData: ChartDataSchema.optional().describe("Structured data for generating a visual chart. Should be used for 'bar', 'line', 'pie', and 'table' types."),
     visualDescription: z.string().optional().describe("A detailed HTML description for visual tasks like maps or process diagrams, where structured data is not applicable."),
+    imageUrl: z.string().optional().describe("A data URI of a generated image for visual tasks like maps."),
     taskType: z.enum(['bar', 'line', 'pie', 'table', 'map', 'process-diagram', 'mixed']).describe("The type of visual task generated.")
 });
 export type GenerateChartTopicOutput = z.infer<typeof GenerateChartTopicOutputSchema>;
@@ -67,12 +69,12 @@ User-provided Topic (if any): {{{topic}}}
     - You MUST generate structured JSON in the 'chartData' field.
     - The 'topic' field MUST be a bold HTML string describing the visual.
     - Set 'taskType' to the one provided in the input (e.g., 'bar').
-    - Omit the 'visualDescription' field.
+    - Omit the 'visualDescription' and 'imageUrl' fields.
     - For the data, the 'name' property should be the category and the 'value' property should be the number.
     - In the config, \`dataKey\` must be 'value' and \`categoryKey\` must be 'name'.
 
 - **If taskType is 'map' or 'process-diagram':**
-    - You MUST generate a detailed description of the visual in the 'visualDescription' field. This description should be formatted as HTML (e.g., using <p>, <ul>, <li>, <strong>) and act as the visual aid for the user.
+    - You MUST generate a detailed description of the visual in the 'visualDescription' field. This description should be formatted as HTML (e.g., using <p>, <ul>, <li>, <strong>) and act as the visual aid for the user. For a map, describe the key features of the 'before' and 'after' states.
     - The 'topic' field MUST be a bold HTML string introducing the map or diagram.
     - Set 'taskType' to the one provided in the input (e.g., 'map').
     - The 'chartData' field MUST be omitted.
@@ -130,7 +132,24 @@ const generateChartTopicFlow = ai.defineFlow(
     const taskTypes = ['bar', 'line', 'pie', 'table', 'map', 'process-diagram', 'mixed'];
     const randomTaskType = taskTypes[Math.floor(Math.random() * taskTypes.length)];
 
-    const {output} = await prompt({...input, taskType: randomTaskType});
+    const promptInput = {...input, taskType: randomTaskType};
+    const {output} = await prompt(promptInput);
+
+    if (output && output.taskType === 'map' && output.visualDescription) {
+        try {
+            const imagePrompt = `Generate a clear, simple, side-by-side map diagram suitable for an IELTS exam question. The diagram should visually represent the following changes: ${output.topic} - ${output.visualDescription}. Do not include any text or labels on the image itself. The map should be in a clean, black and white, blueprint or line-drawing style.`;
+            const { media } = await ai.generate({
+                model: googleAI.model('imagen-4.0-fast-generate-001'),
+                prompt: imagePrompt,
+            });
+            if (media.url) {
+                output.imageUrl = media.url;
+            }
+        } catch (e) {
+            console.error("Image generation for map failed, falling back to description.", e);
+        }
+    }
+
     return output!;
   }
 );

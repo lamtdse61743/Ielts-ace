@@ -2,6 +2,7 @@
 'use client';
 
 import { Suspense, useState, useEffect } from 'react';
+import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
 import { useForm, type SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -290,7 +291,22 @@ function WritingPractice() {
   const renderGeneratedVisual = () => {
     if (!generatedTopic) return null;
 
-    // Handle map or process diagram
+    // Handle generated image for maps
+    if ('imageUrl' in generatedTopic && generatedTopic.imageUrl) {
+        return (
+            <div className="my-6 w-full rounded-md border p-4">
+                 <Image
+                    src={generatedTopic.imageUrl}
+                    alt={generatedTopic.topic}
+                    width={600}
+                    height={400}
+                    className="mx-auto rounded-md"
+                />
+            </div>
+        );
+    }
+    
+    // Handle text description for maps/diagrams
     if ('visualDescription' in generatedTopic && generatedTopic.visualDescription) {
         return (
             <div className="my-6 w-full rounded-md border p-4">
@@ -371,17 +387,17 @@ function WritingPractice() {
                 </Bar>
               </BarChart>
             ) : type === 'line' ? (
-              <LineChart {...chartProps}>
+              <LineChart {...chartProps} margin={{ top: 20, right: 30, left: 30, bottom: 40 }}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey={categoryKey} angle={-30} textAnchor="end" height={60} interval={0} label={{ value: xAxisLabel, position: 'insideBottom', offset: -15 }} />
-                <YAxis label={{ value: yAxisLabel, angle: -90, position: 'insideLeft', offset: -5 }} />
+                <YAxis label={{ value: yAxisLabel, angle: -90, position: 'insideLeft' }} />
                 <Tooltip />
                 <Legend wrapperStyle={{ bottom: 0, left: 20 }}/>
                 <Line type="monotone" dataKey={dataKey} stroke="hsl(var(--primary))" activeDot={{ r: 8 }} />
               </LineChart>
             ) : type === 'pie' ? (
               <PieChart>
-                <Pie data={data} dataKey={dataKey} nameKey={categoryKey} cx="50%" cy="50%" outerRadius={140} labelLine={false} label={renderCustomizedLabel}>
+                <Pie data={data} dataKey={dataKey} nameKey={categoryKey} cx="50%" cy="50%" outerRadius={120} labelLine={false} label={renderCustomizedLabel}>
                   {(data as any[]).map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
