@@ -453,6 +453,14 @@ function WritingPractice() {
                   className="prose dark:prose-invert max-w-none"
                   dangerouslySetInnerHTML={{ __html: generatedTopic.topic }}
                 />
+                {generatedTopic.chartData && (
+                  <div className="my-4 rounded-md bg-muted p-4 text-xs text-muted-foreground">
+                    <h4 className="font-bold text-foreground">Gemini Chart Data (for debugging):</h4>
+                    <pre className="overflow-x-auto">
+                      {JSON.stringify(generatedTopic.chartData, null, 2)}
+                    </pre>
+                  </div>
+                )}
                 {renderGeneratedChart()}
                 <div
                   className="prose dark:prose-invert max-w-none rounded-md border bg-muted p-4 italic"
