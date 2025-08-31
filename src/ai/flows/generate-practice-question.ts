@@ -18,10 +18,6 @@ const GeneratePracticeQuestionInputSchema = z.object({
   trainingType: z
     .enum(['Academic', 'General Training'])
     .describe('The type of IELTS training.'),
-  difficulty: z
-    .string()
-    .optional()
-    .describe('Optional difficulty of the question set (e.g., easy, medium, hard).'),
   topic: z
     .string()
     .optional()
@@ -113,7 +109,6 @@ Your entire response must be in a single JSON object that strictly follows the o
 
 Training Type: {{{trainingType}}}
 Topic: {{{topic}}}
-Difficulty: {{{difficulty}}}
 `,
   config: {
     safetySettings: [

@@ -20,7 +20,6 @@ export type GeneratedQuestion = {
   questionType: 'reading-comprehension';
   trainingType?: 'Academic' | 'General Training';
   topic?: string;
-  difficulty?: string;
   createdAt: string;
   passages: Passage[];
 };

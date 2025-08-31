@@ -13,7 +13,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { AppHeader } from '@/components/app-header';
 import { ExamTimer } from '@/components/exam-timer';
@@ -28,7 +27,6 @@ import { Progress } from '@/components/ui/progress';
 const FormSchema = z.object({
   questionType: z.literal('reading-comprehension'),
   trainingType: z.enum(['Academic', 'General Training']),
-  difficulty: z.string().min(1, 'Please select a difficulty level.'),
   topic: z.string().optional(),
 });
 
@@ -53,7 +51,6 @@ function ReadingPractice() {
     defaultValues: {
       questionType: 'reading-comprehension',
       trainingType: 'Academic',
-      difficulty: 'medium',
       topic: '',
     },
   });
@@ -100,7 +97,6 @@ function ReadingPractice() {
         questionType: data.questionType,
         trainingType: data.trainingType,
         topic: data.topic,
-        difficulty: data.difficulty,
         createdAt: new Date().toISOString(),
       };
       setGeneratedContent(content);
@@ -310,28 +306,6 @@ function ReadingPractice() {
                     <CardContent className="space-y-4">
                       <FormField
                         control={form.control}
-                        name="difficulty"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Difficulty</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select a difficulty level" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                <SelectItem value="easy">Easy</SelectItem>
-                                <SelectItem value="medium">Medium</SelectItem>
-                                <SelectItem value="hard">Hard</SelectItem>
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
                         name="topic"
                         render={({ field }) => (
                           <FormItem>
@@ -371,15 +345,15 @@ function ReadingPractice() {
                     <div>
                       <CardTitle>{currentPassage.passageTitle || `Passage ${currentPassage.passageNumber}`}</CardTitle>
                       <CardDescription>
-                        {generatedContent.trainingType} - {generatedContent.difficulty && <span className="capitalize">{generatedContent.difficulty}</span>}
+                        {generatedContent.trainingType}
                       </CardDescription>
                     </div>
                     <Button variant="ghost" size="icon" onClick={handleSaveToggle} aria-label="Save test">
                       <Bookmark className={cn('size-5', isSaved(generatedContent.id) && 'fill-primary text-primary')} />
                     </Button>
                   </CardHeader>
-                  <CardContent>
-                      <div className="prose dark:prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: currentPassage.passageText }} />
+                  <CardContent className="prose dark:prose-invert max-w-none">
+                      <div dangerouslySetInnerHTML={{ __html: currentPassage.passageText }} />
                   </CardContent>
                 </Card>
 

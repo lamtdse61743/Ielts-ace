@@ -338,10 +338,6 @@ function WritingPractice() {
 
     const { type, data, config } = generatedTopic.chartData;
     const { dataKey, categoryKey, xAxisLabel, yAxisLabel, series } = config;
-
-    const chartProps = {
-      margin: { top: 20, right: 30, left: 20, bottom: 40 },
-    };
     
     const barChartProps = {
         margin: { top: 20, right: 30, left: 50, bottom: 40 },
